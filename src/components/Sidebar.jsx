@@ -1,9 +1,19 @@
 import { Link } from 'react-router-dom'
+import { useAuth } from '../context/AuthContext'
+import { useNavigate } from 'react-router-dom'
 import { memberships } from '../mock/memberships'
 import { orchestras } from '../mock/orchestras'
 import { users } from '../mock/users'
 
 function Sidebar() {
+    const { user, token, logout } = useAuth()
+    const navigate = useNavigate()
+
+    const handleLogout = () => {
+        logout()
+        navigate('/login')
+    }
+
     const currentUser = users.find((u) => u.id === 1)
 
     const userMemberships = memberships.filter(
@@ -51,6 +61,18 @@ function Sidebar() {
                         ))}
                     </ul>
                 </div>
+            )}
+
+            {user && (
+                <div style={{ marginBottom: '1rem' }}>
+                    <strong>{user.name} {user.last_name}</strong>
+                </div>
+            )}
+
+            {token && (
+                <button onClick={handleLogout} style={{ marginTop: '1rem' }}>
+                    Logout
+                </button>
             )}
 
         </aside>
