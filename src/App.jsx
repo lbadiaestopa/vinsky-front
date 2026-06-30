@@ -3,6 +3,7 @@ import PublicLayout from './layouts/PublicLayout'
 import AppLayout from './layouts/AppLayout'
 import Home from './pages/Home'
 import OrchestraDashboard from './pages/OrchestraDashboard'
+import Login from './pages/Login'
 
 function App() {
   return (
@@ -10,6 +11,7 @@ function App() {
 
       {/* Public routes */}
       <Route element={<PublicLayout />}>
+        <Route path="/login" element={<Login />} />
       </Route>
 
       {/* Private app routes */}
