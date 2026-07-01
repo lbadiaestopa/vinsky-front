@@ -1,34 +1,54 @@
 import { Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useNavigate } from 'react-router-dom'
-import { memberships } from '../mock/memberships'
-import { orchestras } from '../mock/orchestras'
-import { users } from '../mock/users'
+import { useEffect, useState } from 'react'
+import { getMe } from '../services/userService'
+import client from '../api/client'
 
 function Sidebar() {
     const { user, token, logout } = useAuth()
     const navigate = useNavigate()
+
+    const [memberships, setMemberships] = useState([])
+    const [orchestras, setOrchestras] = useState([])
 
     const handleLogout = () => {
         logout()
         navigate('/login')
     }
 
-    const currentUser = users.find((u) => u.id === 1)
-
-    const userMemberships = memberships.filter(
-        (m) => m.user_id === currentUser.id
-    )
-
-    const adminOrchestraIds = userMemberships
+    const adminOrchestraIds = memberships
         .filter((m) => m.role === 'admin')
-        .map((m) => m.orchestra_id)
+        .map((m) => m.orchestra.id)
 
     const adminOrchestras = orchestras.filter((o) =>
         adminOrchestraIds.includes(o.id)
     )
 
-    const hasAdminOrchestras = adminOrchestras.length > 0
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                await getMe()
+
+                const membershipsRes = await client.get('/memberships')
+                const membershipsData =
+                    membershipsRes.data.data ?? membershipsRes.data
+
+                setMemberships(membershipsData)
+
+                const orchestrasRes = await client.get('/orchestras')
+                const orchestrasData =
+                    orchestrasRes.data.data ?? orchestrasRes.data
+
+                setOrchestras(orchestrasData)
+
+            } catch (error) {
+                console.error('Sidebar load error:', error)
+            }
+        }
+
+        fetchData()
+    }, [])
 
     return (
         <aside style={{
@@ -47,7 +67,7 @@ function Sidebar() {
 
             <hr />
 
-            {hasAdminOrchestras && (
+            {adminOrchestras.length > 0 && (
                 <div>
                     <h4>My Orchestras</h4>
 
