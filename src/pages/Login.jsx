@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import client from '../api/client'
 import { useEffect } from 'react'
+import { Link } from 'react-router-dom'
 
 function Login() {
     const [email, setEmail] = useState('')
@@ -65,6 +66,10 @@ function Login() {
                     Login
                 </button>
             </form>
+
+            <p style={{ marginTop: '1rem' }}>
+                I don't have an account. <Link to="/register">Register now</Link>
+            </p>
         </div>
     )
 }
