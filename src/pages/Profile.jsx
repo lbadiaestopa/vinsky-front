@@ -135,44 +135,44 @@ function Profile() {
         }
     }
 
-    if (loading) return <p>Loading...</p>
+    if (loading) return <p className="p-8 text-sm">Loading...</p>
 
     return (
-        <div>
-            <h1>My Profile</h1>
+        <div className="bg-white min-h-screen p-8">
+            <h1 className="text-2xl font-semibold mb-6 ms-1">My Profile</h1>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', maxWidth: '300px' }}>
-                <label>
-                    Name
+            <div className="flex flex-col gap-4 max-w-sm">
+                <label className="flex flex-col gap-1">
+                    <span className="text-sm font-medium ms-1">Name</span>
                     <input
                         name="name"
                         value={form.name}
                         onChange={handleChange}
                         disabled={isSaving}
-                        style={{ opacity: isSaving ? 0.6 : 1 }}
+                        className="rounded-lg border border-gray px-3 py-2 text-sm focus:outline-none disabled:opacity-60"
                     />
                 </label>
 
-                <label>
-                    Last name
+                <label className="flex flex-col gap-1">
+                    <span className="text-sm font-medium ms-1">Last name</span>
                     <input
                         name="last_name"
                         value={form.last_name}
                         onChange={handleChange}
                         disabled={isSaving}
-                        style={{ opacity: isSaving ? 0.6 : 1 }}
+                        className="rounded-lg border border-gray px-3 py-2 text-sm focus:outline-none disabled:opacity-60"
                     />
                 </label>
 
-                <label>
-                    Email
+                <label className="flex flex-col gap-1">
+                    <span className="text-sm font-medium ms-1">Email</span>
                     <input
                         name="email"
                         type="email"
                         value={form.email}
                         onChange={handleChange}
                         disabled={isSaving}
-                        style={{ opacity: isSaving ? 0.6 : 1 }}
+                        className="rounded-lg border border-gray px-3 py-2 text-sm focus:outline-none disabled:opacity-60"
                     />
                 </label>
 
@@ -180,45 +180,45 @@ function Profile() {
                     type="button"
                     onClick={handleSave}
                     disabled={isSaving}
-                    style={{ opacity: isSaving ? 0.6 : 1, cursor: isSaving ? 'not-allowed' : 'pointer' }}
+                    className="rounded-lg border border-black bg-black text-white text-sm font-medium py-2 hover:cursor-pointer focus:outline-none disabled:opacity-60"
                 >
                     {isSaving ? 'Saving...' : 'Save'}
                 </button>
 
                 {saveStatus === 'success' && (
-                    <p style={{ color: 'green' }}>Changes saved successfully</p>
+                    <p className="text-sm">Changes saved successfully</p>
                 )}
                 {saveError && (
-                    <p style={{ color: 'red' }}>{saveError}</p>
+                    <p className="text-sm text-red">{saveError}</p>
                 )}
             </div>
 
-            <hr style={{ margin: '2rem 0' }} />
+            <hr className="border-gray-200 my-8 max-w-sm" />
 
-            <h2>Change password</h2>
+            <h2 className="text-base font-semibold mb-4 ms-1">Change password</h2>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', maxWidth: '300px' }}>
-                <label>
-                    Current password
+            <div className="flex flex-col gap-4 max-w-sm">
+                <label className="flex flex-col gap-1">
+                    <span className="text-sm font-medium ms-1">Current password</span>
                     <input
                         name="current_password"
                         type="password"
                         value={passwordForm.current_password}
                         onChange={handlePasswordChange}
                         disabled={isSavingPassword}
-                        style={{ opacity: isSavingPassword ? 0.6 : 1 }}
+                        className="rounded-lg border border-gray px-3 py-2 text-sm focus:outline-none disabled:opacity-60"
                     />
                 </label>
 
-                <label>
-                    New password
+                <label className="flex flex-col gap-1">
+                    <span className="text-sm font-medium ms-1">New password</span>
                     <input
                         name="password"
                         type="password"
                         value={passwordForm.password}
                         onChange={handlePasswordChange}
                         disabled={isSavingPassword}
-                        style={{ opacity: isSavingPassword ? 0.6 : 1 }}
+                        className="rounded-lg border border-gray px-3 py-2 text-sm focus:outline-none disabled:opacity-60"
                     />
                 </label>
 
@@ -226,26 +226,26 @@ function Profile() {
                     type="button"
                     onClick={handleSavePassword}
                     disabled={isSavingPassword}
-                    style={{ opacity: isSavingPassword ? 0.6 : 1, cursor: isSavingPassword ? 'not-allowed' : 'pointer' }}
+                    className="rounded-lg border border-black bg-black text-white text-sm font-medium py-2 hover:cursor-pointer focus:outline-none disabled:opacity-60"
                 >
                     {isSavingPassword ? 'Saving...' : 'Change password'}
                 </button>
 
                 {passwordStatus === 'success' && (
-                    <p style={{ color: 'green' }}>Password updated successfully</p>
+                    <p className="text-sm">Password updated successfully</p>
                 )}
                 {passwordError && (
-                    <p style={{ color: 'red' }}>{passwordError}</p>
+                    <p className="text-sm text-red">{passwordError}</p>
                 )}
             </div>
 
-            <hr style={{ margin: '2rem 0' }} />
+            <hr className="border-gray-200 my-8 max-w-sm" />
 
             <button
                 type="button"
                 onClick={handleDeleteAccount}
                 disabled={isDeletingAccount}
-                style={{ color: 'red' }}
+                className="rounded-lg border bg-red text-white text-sm font-medium py-2 px-4 hover:cursor-pointer focus:outline-none disabled:opacity-60"
             >
                 {isDeletingAccount ? 'Deleting...' : 'Delete account'}
             </button>
