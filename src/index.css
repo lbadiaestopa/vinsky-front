@@ -3,4 +3,6 @@
 @theme {
   --font-sans: 'Geist Sans', ui-sans-serif, system-ui, sans-serif;
   --color-card-gray: #F2F2F2;
+  --color-gray: #D9D9D9;
+  --color-red: #FF0000;
 }
