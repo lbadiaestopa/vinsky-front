@@ -1,6 +1,9 @@
-import { useState } from 'react'
-import { memberships, setMemberships } from '../mock/memberships'
-import { users } from '../mock/users'
+import { useState, useEffect } from 'react'
+import {
+    getOrchestraMemberships,
+    updateMembership,
+    deleteMembership
+} from '../services/membershipService'
 
 const SECTION_ORDER = [
     'violin_1', 'violin_2', 'viola', 'cello', 'double_bass',
@@ -11,64 +14,68 @@ const SECTION_ORDER = [
 
 const MEMBER_TYPE_ORDER = ['core', 'substitute', 'guest']
 
-function MemberList({ orchestraId }) {
-
-    const [members, setMembers] = useState(() =>
-        memberships
-            .filter((m) => m.orchestra_id === Number(orchestraId))
-            .map((m) => ({
-                ...m,
-                user: users.find((u) => u.id === m.user_id)
-            }))
-    )
-
+function MemberList({ orchestraId, refreshKey }) {
+    const [members, setMembers] = useState([])
+    const [loading, setLoading] = useState(true)
     const [editingMember, setEditingMember] = useState(null)
+    const [isSaving, setIsSaving] = useState(false)
+    const [error, setError] = useState(null)
 
-    const handleUpdate = (userId, updates) => {
-        setMembers((prev) =>
-            prev.map((m) =>
-                m.user_id === userId
-                    ? { ...m, ...updates }
-                    : m
-            )
-        )
+    useEffect(() => {
+        const fetchMembers = async () => {
+            setLoading(true)
+            try {
+                const data = await getOrchestraMemberships(orchestraId)
+                setMembers(data)
+            } catch (err) {
+                console.error('MemberList load error:', err)
+                setError('Failed to load members')
+            } finally {
+                setLoading(false)
+            }
+        }
 
-        setMembershipsStore((prev) =>
-            prev.map((m) =>
-                m.user_id === userId && m.orchestra_id === Number(orchestraId)
-                    ? { ...m, ...updates }
-                    : m
+        fetchMembers()
+    }, [orchestraId, refreshKey])
+
+    const handleUpdate = async (membership) => {
+        setIsSaving(true)
+        setError(null)
+
+        try {
+            const updated = await updateMembership(membership.id, {
+                role: membership.role,
+                member_type: membership.member_type,
+                instrument: membership.instrument,
+                section: membership.section
+            })
+
+            setMembers((prev) =>
+                prev.map((m) => (m.id === updated.id ? updated : m))
             )
-        )
+        } catch (err) {
+            console.error('Update membership error:', err)
+            setError('Failed to update member')
+        } finally {
+            setIsSaving(false)
+        }
     }
 
-    const handleRemove = (userId) => {
-        setMembers((prev) =>
-            prev.filter((m) => m.user_id !== userId)
-        )
+    const handleRemove = async (membershipId) => {
+        setError(null)
 
-        setMembershipsStore((prev) =>
-            prev.filter(
-                (m) =>
-                    !(m.user_id === userId &&
-                        m.orchestra_id === Number(orchestraId))
-            )
-        )
+        try {
+            await deleteMembership(membershipId)
+            setMembers((prev) => prev.filter((m) => m.id !== membershipId))
+        } catch (err) {
+            console.error('Remove membership error:', err)
+            setError('Failed to remove member')
+        }
     }
 
-    const handleEdit = (userId, field, value) => {
-        setMembers((prev) =>
-            prev.map((m) =>
-                m.user_id === userId
-                    ? { ...m, [field]: value }
-                    : m
-            )
-        )
-    }
-
-    if (members.length === 0) {
-        return <p>No members found</p>
-    }
+    if (loading) return <p>Loading members...</p>
+    if (error) return <p style={{ color: 'red' }}>{error}</p>
+    if (members.length === 0) return <p>No members found</p>
 
     const grouped = members.reduce((acc, member) => {
         const section = member.section || 'other'
@@ -102,7 +109,7 @@ function MemberList({ orchestraId }) {
                         <ul>
                             {sorted.map((m) => (
                                 <li
-                                    key={m.user_id}
+                                    key={m.id}
                                     style={{
                                         display: 'flex',
                                         justifyContent: 'space-between',
@@ -118,17 +125,16 @@ function MemberList({ orchestraId }) {
                                     </span>
 
                                     <div style={{ display: 'flex', gap: '0.5rem' }}>
-
                                         <button
                                             type="button"
-                                            onClick={() => setEditingMember(m)}
+                                            onClick={() => setEditingMember({ ...m })}
                                         >
                                             Edit
                                         </button>
 
                                         <button
                                             type="button"
-                                            onClick={() => handleRemove(m.user_id)}
+                                            onClick={() => handleRemove(m.id)}
                                             style={{ color: 'red' }}
                                         >
                                             Remove
@@ -140,6 +146,7 @@ function MemberList({ orchestraId }) {
                     </div>
                 )
             })}
+
             {editingMember && (
                 <div style={{
                     position: 'fixed',
@@ -160,58 +167,45 @@ function MemberList({ orchestraId }) {
                         flexDirection: 'column',
                         gap: '0.5rem'
                     }}>
-
                         <h3>Edit member</h3>
 
-                        {/* ROLE */}
                         <select
                             value={editingMember.role}
                             onChange={(e) =>
-                                setEditingMember({
-                                    ...editingMember,
-                                    role: e.target.value
-                                })
+                                setEditingMember({ ...editingMember, role: e.target.value })
                             }
+                            disabled={isSaving}
                         >
                             <option value="admin">admin</option>
                             <option value="member">member</option>
                         </select>
 
-                        {/* MEMBER TYPE */}
                         <select
                             value={editingMember.member_type}
                             onChange={(e) =>
-                                setEditingMember({
-                                    ...editingMember,
-                                    member_type: e.target.value
-                                })
+                                setEditingMember({ ...editingMember, member_type: e.target.value })
                             }
+                            disabled={isSaving}
                         >
                             <option value="core">core</option>
                             <option value="substitute">substitute</option>
                             <option value="guest">guest</option>
                         </select>
 
-                        {/* INSTRUMENT */}
                         <input
                             value={editingMember.instrument}
                             onChange={(e) =>
-                                setEditingMember({
-                                    ...editingMember,
-                                    instrument: e.target.value
-                                })
+                                setEditingMember({ ...editingMember, instrument: e.target.value })
                             }
+                            disabled={isSaving}
                         />
 
-                        {/* SECTION */}
                         <select
                             value={editingMember.section}
                             onChange={(e) =>
-                                setEditingMember({
-                                    ...editingMember,
-                                    section: e.target.value
-                                })
+                                setEditingMember({ ...editingMember, section: e.target.value })
                             }
+                            disabled={isSaving}
                         >
                             {SECTION_ORDER.map((s) => (
                                 <option key={s} value={s}>
@@ -220,22 +214,21 @@ function MemberList({ orchestraId }) {
                             ))}
                         </select>
 
-                        {/* ACTIONS */}
                         <div style={{ display: 'flex', gap: '0.5rem' }}>
                             <button
-                                onClick={() => {
-                                    handleUpdate(editingMember.user_id, editingMember)
+                                onClick={async () => {
+                                    await handleUpdate(editingMember)
                                     setEditingMember(null)
                                 }}
+                                disabled={isSaving}
                             >
-                                Save
+                                {isSaving ? 'Saving...' : 'Save'}
                             </button>
 
-                            <button onClick={() => setEditingMember(null)}>
+                            <button onClick={() => setEditingMember(null)} disabled={isSaving}>
                                 Cancel
                             </button>
                         </div>
-
                     </div>
                 </div>
             )}
