@@ -73,9 +73,9 @@ function MemberList({ orchestraId, refreshKey }) {
         }
     }
 
-    if (loading) return <p>Loading members...</p>
-    if (error) return <p style={{ color: 'red' }}>{error}</p>
-    if (members.length === 0) return <p>No members found</p>
+    if (loading) return <p className="text-sm">Loading members...</p>
+    if (error) return <p className="text-sm text-red">{error}</p>
+    if (members.length === 0) return <p className="text-sm">No members found</p>
 
     const grouped = members.reduce((acc, member) => {
         const section = member.section || 'other'
@@ -103,41 +103,37 @@ function MemberList({ orchestraId, refreshKey }) {
                 })
 
                 return (
-                    <div key={section} style={{ marginBottom: '1rem' }}>
-                        <h4>{section.replace('_', ' ').toUpperCase()}</h4>
+                    <div key={section} className="mb-4">
+                        <h4 className="text-sm font-semibold mb-2">{section.replace('_', ' ').toUpperCase()}</h4>
 
-                        <ul>
+                        <ul className="flex flex-col gap-1">
                             {sorted.map((m) => (
                                 <li
                                     key={m.id}
-                                    style={{
-                                        display: 'flex',
-                                        justifyContent: 'space-between',
-                                        alignItems: 'center',
-                                        gap: '1rem'
-                                    }}
+                                    className="flex justify-between items-center gap-4 bg-card-gray rounded-lg px-3 py-2"
                                 >
-                                    <span>
+                                    <span className="text-sm">
                                         {m.user.last_name}, {m.user.name}{' '}
-                                        <span style={{ fontSize: '0.8rem', opacity: 0.7 }}>
+                                        <span className="text-xs opacity-70">
                                             [{m.member_type}]
                                         </span>
                                     </span>
 
-                                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                    <div className="flex gap-1">
                                         <button
                                             type="button"
                                             onClick={() => setEditingMember({ ...m })}
+                                            className="rounded-full px-2 py-1 hover:bg-gray transition-colors focus:outline-none cursor-pointer flex items-center"
                                         >
-                                            Edit
+                                            <span className="material-symbols-outlined text-base!">edit</span>
                                         </button>
 
                                         <button
                                             type="button"
                                             onClick={() => handleRemove(m.id)}
-                                            style={{ color: 'red' }}
+                                            className="rounded-full text-red px-2 py-1 hover:bg-gray transition-colors focus:outline-none cursor-pointer flex items-center"
                                         >
-                                            Remove
+                                            <span className="material-symbols-outlined text-base!">delete</span>
                                         </button>
                                     </div>
                                 </li>
@@ -148,84 +144,88 @@ function MemberList({ orchestraId, refreshKey }) {
             })}
 
             {editingMember && (
-                <div style={{
-                    position: 'fixed',
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    background: 'rgba(0,0,0,0.4)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center'
-                }}>
-                    <div style={{
-                        background: 'white',
-                        padding: '1rem',
-                        width: '300px',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: '0.5rem'
-                    }}>
-                        <h3>Edit member</h3>
+                <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-100 px-4">
+                    <div className="bg-white rounded-lg p-4 w-full max-w-sm flex flex-col gap-3">
+                        <h3 className="text-base font-semibold">Edit member</h3>
 
-                        <select
-                            value={editingMember.role}
-                            onChange={(e) =>
-                                setEditingMember({ ...editingMember, role: e.target.value })
-                            }
-                            disabled={isSaving}
-                        >
-                            <option value="admin">admin</option>
-                            <option value="member">member</option>
-                        </select>
+                        <label className="flex flex-col gap-1">
+                            <span className="text-sm font-medium ms-1">Role</span>
+                            <select
+                                value={editingMember.role}
+                                onChange={(e) =>
+                                    setEditingMember({ ...editingMember, role: e.target.value })
+                                }
+                                disabled={isSaving}
+                                className="rounded-lg border border-gray px-3 py-2 text-sm focus:outline-none disabled:opacity-60"
+                            >
+                                <option value="admin">admin</option>
+                                <option value="member">member</option>
+                            </select>
+                        </label>
 
-                        <select
-                            value={editingMember.member_type}
-                            onChange={(e) =>
-                                setEditingMember({ ...editingMember, member_type: e.target.value })
-                            }
-                            disabled={isSaving}
-                        >
-                            <option value="core">core</option>
-                            <option value="substitute">substitute</option>
-                            <option value="guest">guest</option>
-                        </select>
+                        <label className="flex flex-col gap-1">
+                            <span className="text-sm font-medium ms-1">Member type</span>
+                            <select
+                                value={editingMember.member_type}
+                                onChange={(e) =>
+                                    setEditingMember({ ...editingMember, member_type: e.target.value })
+                                }
+                                disabled={isSaving}
+                                className="rounded-lg border border-gray px-3 py-2 text-sm focus:outline-none disabled:opacity-60"
+                            >
+                                <option value="core">core</option>
+                                <option value="substitute">substitute</option>
+                                <option value="guest">guest</option>
+                            </select>
+                        </label>
 
-                        <input
-                            value={editingMember.instrument}
-                            onChange={(e) =>
-                                setEditingMember({ ...editingMember, instrument: e.target.value })
-                            }
-                            disabled={isSaving}
-                        />
+                        <label className="flex flex-col gap-1">
+                            <span className="text-sm font-medium ms-1">Instrument</span>
+                            <input
+                                value={editingMember.instrument}
+                                onChange={(e) =>
+                                    setEditingMember({ ...editingMember, instrument: e.target.value })
+                                }
+                                disabled={isSaving}
+                                className="rounded-lg border border-gray px-3 py-2 text-sm focus:outline-none disabled:opacity-60"
+                            />
+                        </label>
 
-                        <select
-                            value={editingMember.section}
-                            onChange={(e) =>
-                                setEditingMember({ ...editingMember, section: e.target.value })
-                            }
-                            disabled={isSaving}
-                        >
-                            {SECTION_ORDER.map((s) => (
-                                <option key={s} value={s}>
-                                    {s}
-                                </option>
-                            ))}
-                        </select>
+                        <label className="flex flex-col gap-1">
+                            <span className="text-sm font-medium ms-1">Section</span>
+                            <select
+                                value={editingMember.section}
+                                onChange={(e) =>
+                                    setEditingMember({ ...editingMember, section: e.target.value })
+                                }
+                                disabled={isSaving}
+                                className="rounded-lg border border-gray px-3 py-2 text-sm focus:outline-none disabled:opacity-60"
+                            >
+                                {SECTION_ORDER.map((s) => (
+                                    <option key={s} value={s}>
+                                        {s}
+                                    </option>
+                                ))}
+                            </select>
+                        </label>
 
-                        <div style={{ display: 'flex', gap: '0.5rem' }}>
+                        <div className="flex gap-2 mt-1">
                             <button
                                 onClick={async () => {
                                     await handleUpdate(editingMember)
                                     setEditingMember(null)
                                 }}
                                 disabled={isSaving}
+                                className="flex-1 rounded-lg border border-black bg-black text-white text-sm font-medium py-2 cursor-pointer focus:outline-none disabled:opacity-60"
                             >
                                 {isSaving ? 'Saving...' : 'Save'}
                             </button>
 
-                            <button onClick={() => setEditingMember(null)} disabled={isSaving}>
+                            <button
+                                onClick={() => setEditingMember(null)}
+                                disabled={isSaving}
+                                className="flex-1 rounded-lg border border-gray text-sm font-medium py-2 hover:bg-card-gray transition-colors focus:outline-none disabled:opacity-60 cursor-pointer"
+                            >
                                 Cancel
                             </button>
                         </div>
