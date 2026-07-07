@@ -120,7 +120,7 @@ function Sidebar() {
                         onClick={openCreateModal}
                         className="text-sm rounded-lg py-1.5 px-3 w-full text-left hover:cursor-pointer hover:px-4 hover:bg-card-gray transition-all focus:outline-none flex items-center gap-1"
                     >
-                        <span className="material-symbols-outlined text-base!">add_2</span>
+                        <span className="material-symbols-outlined text-xl!">add</span>
                         Add orchestra
                     </button>
                 </div>
