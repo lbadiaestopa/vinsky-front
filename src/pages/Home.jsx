@@ -48,33 +48,51 @@ function Home() {
     }, [])
 
     return (
-        <div>
-            <div style={{ display: 'flex', gap: '12px', marginBottom: '16px' }}>
-                <button type="button" onClick={() => setActiveTab('events')} disabled={activeTab === 'events'}>
-                    Next events
-                </button>
-                <button type="button" onClick={() => setActiveTab('programs')} disabled={activeTab === 'programs'}>
-                    Programs
-                </button>
+        <div className="bg-white min-h-screen p-8">
+            <div className="max-w-5xl mx-auto">
+                <div className="flex gap-2 mb-6">
+                    <button
+                        type="button"
+                        onClick={() => setActiveTab('events')}
+                        disabled={activeTab === 'events'}
+                        className={`rounded-lg text-sm font-medium px-4 py-2 cursor-pointer focus:outline-none disabled:cursor-default ${activeTab === 'events'
+                                ? 'bg-black text-white'
+                                : 'text-black hover:bg-card-gray transition-colors'
+                            }`}
+                    >
+                        Next events
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => setActiveTab('programs')}
+                        disabled={activeTab === 'programs'}
+                        className={`rounded-lg text-sm font-medium px-4 py-2 cursor-pointer focus:outline-none disabled:cursor-default ${activeTab === 'programs'
+                                ? 'bg-black text-white'
+                                : 'text-black hover:bg-card-gray transition-colors'
+                            }`}
+                    >
+                        Programs
+                    </button>
+                </div>
+
+                {activeTab === 'events' && (
+                    <NextEventsTab
+                        events={eventsData}
+                        programsData={programsData}
+                        orchestrasData={orchestrasData}
+                        onProgramClick={handleProgramClick}
+                    />
+                )}
+
+                {activeTab === 'programs' && (
+                    <ProgramsTab
+                        programs={programsData}
+                        orchestras={orchestrasData}
+                        selectedProgramId={selectedProgramId}
+                        onToggleProgram={setSelectedProgramId}
+                    />
+                )}
             </div>
-
-            {activeTab === 'events' && (
-                <NextEventsTab
-                    events={eventsData}
-                    programsData={programsData}
-                    orchestrasData={orchestrasData}
-                    onProgramClick={handleProgramClick}
-                />
-            )}
-
-            {activeTab === 'programs' && (
-                <ProgramsTab
-                    programs={programsData}
-                    orchestras={orchestrasData}
-                    selectedProgramId={selectedProgramId}
-                    onToggleProgram={setSelectedProgramId}
-                />
-            )}
         </div>
     )
 }
