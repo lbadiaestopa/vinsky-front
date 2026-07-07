@@ -79,42 +79,49 @@ function EventCard({ event, program, orchestra, onProgramClick, canManage, progr
     }
 
     return (
-        <div style={{ border: '1px solid #ddd', padding: '12px', marginBottom: '12px', position: 'relative', opacity: isDeleting ? 0.5 : 1 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <h3 style={{ margin: 0 }}>{event.repertoire}</h3>
+        <div className={`bg-card-gray rounded-lg p-4 mb-3 relative ${isDeleting ? 'opacity-50' : ''}`}>
+            <span className="text-sm border border-gray rounded-lg px-2 py-1 -ms-1">{EVENT_TYPE_LABELS[event.type]}</span>
 
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <span>{EVENT_TYPE_LABELS[event.type]}</span>
+            <div className="flex justify-between items-start mt-2">
+                <h3 className="text-base font-semibold">{event.repertoire}</h3>
+
+                <div className="flex items-center gap-2">
+                    <p className="text-sm my-1 font-semibold">
+                        {start.toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' })}{' '}
+                        · {start.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
+                        {' - '}
+                        {end.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
+                    </p>
+
+                    <p className="text-sm">
+                        {' · '}
+                        {event.location}
+                    </p>
 
                     {canManage && (
-                        <div style={{ position: 'relative' }}>
+                        <div className="relative">
                             <button
                                 type="button"
                                 onClick={() => setMenuOpen((prev) => !prev)}
-                                style={{ background: 'none', border: 'none', fontSize: '1.2rem', cursor: 'pointer', padding: '0 8px' }}
+                                className="bg-transparent border-none text-lg cursor-pointer px-2 focus:outline-none"
                             >
-                                ⋮
+                                <span className="material-symbols-outlined text-xl! rounded-full hover:bg-gray transition-colors px-2 py-1">more_vert</span>
                             </button>
 
                             {menuOpen && (
-                                <div
-                                    style={{
-                                        position: 'absolute',
-                                        right: 0,
-                                        top: '100%',
-                                        background: 'white',
-                                        border: '1px solid #ddd',
-                                        boxShadow: '0 2px 6px rgba(0,0,0,0.15)',
-                                        zIndex: 10,
-                                        minWidth: '140px'
-                                    }}
-                                >
-                                    <button type="button" onClick={openEdit}
-                                        style={{ display: 'block', width: '100%', textAlign: 'left', padding: '8px 12px', border: 'none', background: 'none', cursor: 'pointer' }}>
+                                <div className="absolute right-0 top-full bg-white border border-gray rounded-lg shadow-md z-10 min-w-35">
+                                    <button
+                                        type="button"
+                                        onClick={openEdit}
+                                        className="block w-full text-left text-sm px-3 py-2 hover:bg-card-gray transition-colors focus:outline-none cursor-pointer"
+                                    >
                                         Edit details
                                     </button>
-                                    <button type="button" onClick={handleDelete}
-                                        style={{ display: 'block', width: '100%', textAlign: 'left', padding: '8px 12px', border: 'none', background: 'none', cursor: 'pointer', color: 'red' }}>
+                                    <button
+                                        type="button"
+                                        onClick={handleDelete}
+                                        className="block w-full text-left text-sm px-3 py-2 text-red hover:bg-card-gray transition-colors focus:outline-none cursor-pointer"
+                                    >
                                         Delete event
                                     </button>
                                 </div>
@@ -124,26 +131,13 @@ function EventCard({ event, program, orchestra, onProgramClick, canManage, progr
                 </div>
             </div>
 
-            <p style={{ margin: '4px 0', fontSize: '0.9rem', opacity: 0.85 }}>
-                {start.toLocaleDateString(undefined, { day: '2-digit', month: 'short', year: 'numeric' })}{' '}
-                · {start.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })}
-                {' → '}
-                {end.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })}
-                {' · '}
-                {event.location}
-            </p>
-
             {onProgramClick && (
-                <p style={{ margin: '4px 0', fontSize: '0.9rem', opacity: 0.8 }}>
+                <p className="text-sm opacity-80 my-1">
                     {program ? (
                         <button
                             type="button"
                             onClick={() => onProgramClick(program.id)}
-                            style={{
-                                background: 'none', border: 'none', padding: 0,
-                                color: '#0066cc', textDecoration: 'underline',
-                                cursor: 'pointer', fontSize: 'inherit'
-                            }}
+                            className="bg-transparent border-none p-0 underline cursor-pointer text-sm focus:outline-none"
                         >
                             {program.name}
                         </button>
@@ -156,32 +150,27 @@ function EventCard({ event, program, orchestra, onProgramClick, canManage, progr
             )}
 
             {editing && (
-                <div style={{
-                    position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-                    background: 'rgba(0,0,0,0.4)', display: 'flex',
-                    alignItems: 'center', justifyContent: 'center', zIndex: 100
-                }}>
-                    <div style={{
-                        background: 'white', padding: '1rem', width: '320px',
-                        display: 'flex', flexDirection: 'column', gap: '0.5rem'
-                    }}>
-                        <h3>Edit event</h3>
+                <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-100 px-4">
+                    <div className="bg-white rounded-lg p-4 w-full max-w-sm flex flex-col gap-3">
+                        <h3 className="text-base font-semibold">Edit event</h3>
 
-                        <label>
-                            Repertoire
+                        <label className="flex flex-col gap-1">
+                            <span className="text-sm font-medium ms-1">Repertoire</span>
                             <input
                                 value={form.repertoire}
                                 onChange={(e) => setForm({ ...form, repertoire: e.target.value })}
                                 disabled={isSaving}
+                                className="rounded-lg border border-gray px-3 py-2 text-sm focus:outline-none disabled:opacity-60"
                             />
                         </label>
 
-                        <label>
-                            Type
+                        <label className="flex flex-col gap-1">
+                            <span className="text-sm font-medium ms-1">Type</span>
                             <select
                                 value={form.type}
                                 onChange={(e) => setForm({ ...form, type: e.target.value })}
                                 disabled={isSaving}
+                                className="rounded-lg border border-gray px-3 py-2 text-sm focus:outline-none disabled:opacity-60"
                             >
                                 {EVENT_TYPES.map((t) => (
                                     <option key={t} value={t}>{t}</option>
@@ -189,42 +178,53 @@ function EventCard({ event, program, orchestra, onProgramClick, canManage, progr
                             </select>
                         </label>
 
-                        <label>
-                            Location
+                        <label className="flex flex-col gap-1">
+                            <span className="text-sm font-medium ms-1">Location</span>
                             <input
                                 value={form.location}
                                 onChange={(e) => setForm({ ...form, location: e.target.value })}
                                 disabled={isSaving}
+                                className="rounded-lg border border-gray px-3 py-2 text-sm focus:outline-none disabled:opacity-60"
                             />
                         </label>
 
-                        <label>
-                            Start
+                        <label className="flex flex-col gap-1">
+                            <span className="text-sm font-medium ms-1">Start</span>
                             <input
                                 type="datetime-local"
                                 value={form.start_date}
                                 onChange={(e) => setForm({ ...form, start_date: e.target.value })}
                                 disabled={isSaving}
+                                className="rounded-lg border border-gray px-3 py-2 text-sm focus:outline-none disabled:opacity-60"
                             />
                         </label>
 
-                        <label>
-                            End
+                        <label className="flex flex-col gap-1">
+                            <span className="text-sm font-medium ms-1">End</span>
                             <input
                                 type="datetime-local"
                                 value={form.end_date}
                                 onChange={(e) => setForm({ ...form, end_date: e.target.value })}
                                 disabled={isSaving}
+                                className="rounded-lg border border-gray px-3 py-2 text-sm focus:outline-none disabled:opacity-60"
                             />
                         </label>
 
-                        {error && <p style={{ color: 'red' }}>{error}</p>}
+                        {error && <p className="text-sm text-red">{error}</p>}
 
-                        <div style={{ display: 'flex', gap: '0.5rem' }}>
-                            <button onClick={handleSave} disabled={isSaving}>
+                        <div className="flex gap-2 mt-1">
+                            <button
+                                onClick={handleSave}
+                                disabled={isSaving}
+                                className="flex-1 rounded-lg border border-black bg-black text-white text-sm font-medium py-2 cursor-pointer focus:outline-none disabled:opacity-60"
+                            >
                                 {isSaving ? 'Saving...' : 'Save'}
                             </button>
-                            <button onClick={() => setEditing(false)} disabled={isSaving}>
+                            <button
+                                onClick={() => setEditing(false)}
+                                disabled={isSaving}
+                                className="flex-1 rounded-lg border border-gray text-sm font-medium py-2 hover:bg-card-gray transition-colors focus:outline-none disabled:opacity-60 cursor-pointer"
+                            >
                                 Cancel
                             </button>
                         </div>

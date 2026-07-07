@@ -93,14 +93,6 @@ function ProgramCard({ program, isOpen, onToggle, canManage, onProgramUpdated, o
         setIsSavingEvent(true)
         setEventError(null)
 
-        const handleEventUpdated = (updated) => {
-            setEvents((prev) => prev.map((e) => (e.id === updated.id ? updated : e)))
-        }
-
-        const handleEventDeleted = (eventId) => {
-            setEvents((prev) => prev.filter((e) => e.id !== eventId))
-        }
-
         try {
             const created = await createEvent(program.id, {
                 repertoire: eventForm.repertoire,
@@ -231,53 +223,44 @@ function ProgramCard({ program, isOpen, onToggle, canManage, onProgramUpdated, o
     }
 
     return (
-        <div style={{ border: '1px solid #ddd', padding: '12px', marginBottom: '12px', position: 'relative', opacity: isDeleting ? 0.5 : 1 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                <div onClick={onToggle} style={{ cursor: 'pointer', flex: 1 }}>
-                    <h3 style={{ margin: 0 }}>{program.name}</h3>
-                    <p style={{ margin: '4px 0', fontSize: '0.9rem', opacity: 0.85 }}>
-                        {new Date(program.start_date).toLocaleDateString(undefined, { day: '2-digit', month: 'short', year: 'numeric' })}
-                        {' → '}
-                        {new Date(program.end_date).toLocaleDateString(undefined, { day: '2-digit', month: 'short', year: 'numeric' })}
+        <div className={`border border-gray rounded-lg p-4 mb-3 relative ${isDeleting ? 'opacity-50' : ''}`}>
+            <div className="flex justify-between items-start">
+                <div onClick={onToggle} className="cursor-pointer flex-1">
+                    <h3 className="text-base font-semibold">{program.name}</h3>
+                    <p className="text-sm opacity-85 my-1">
+                        {new Date(program.start_date).toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' })}
+                        {' - '}
+                        {new Date(program.end_date).toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' })}
                     </p>
                 </div>
 
                 {canManage && (
-                    <div style={{ position: 'relative' }}>
+                    <div className="relative">
                         <button
                             type="button"
                             onClick={(e) => {
                                 e.stopPropagation()
                                 setMenuOpen((prev) => !prev)
                             }}
-                            style={{ background: 'none', border: 'none', fontSize: '1.2rem', cursor: 'pointer', padding: '0 8px' }}
+                            className="bg-transparent border-none text-lg cursor-pointer px-2 focus:outline-none"
                         >
-                            ⋮
+                            <span className="material-symbols-outlined text-xl! rounded-full hover:bg-gray transition-colors px-2 py-1">more_vert</span>
                         </button>
 
                         {menuOpen && (
-                            <div
-                                style={{
-                                    position: 'absolute',
-                                    right: 0,
-                                    top: '100%',
-                                    background: 'white',
-                                    border: '1px solid #ddd',
-                                    boxShadow: '0 2px 6px rgba(0,0,0,0.15)',
-                                    zIndex: 10,
-                                    minWidth: '140px'
-                                }}
-                            >
-                                <button type="button" onClick={(e) => { e.stopPropagation(); openModal('addEvent') }}
-                                    style={{ display: 'block', width: '100%', textAlign: 'left', padding: '8px 12px', border: 'none', background: 'none', cursor: 'pointer' }}>
-                                    Add event
-                                </button>
-                                <button type="button" onClick={(e) => { e.stopPropagation(); openModal('editDetails') }}
-                                    style={{ display: 'block', width: '100%', textAlign: 'left', padding: '8px 12px', border: 'none', background: 'none', cursor: 'pointer' }}>
+                            <div className="absolute right-0 top-full bg-white border border-gray rounded-lg shadow-md z-10 min-w-35">
+                                <button
+                                    type="button"
+                                    onClick={(e) => { e.stopPropagation(); openModal('editDetails') }}
+                                    className="block w-full text-left text-sm px-3 py-2 hover:bg-card-gray transition-colors focus:outline-none cursor-pointer"
+                                >
                                     Edit details
                                 </button>
-                                <button type="button" onClick={(e) => { e.stopPropagation(); handleDelete() }}
-                                    style={{ display: 'block', width: '100%', textAlign: 'left', padding: '8px 12px', border: 'none', background: 'none', cursor: 'pointer', color: 'red' }}>
+                                <button
+                                    type="button"
+                                    onClick={(e) => { e.stopPropagation(); handleDelete() }}
+                                    className="block w-full text-left text-sm px-3 py-2 text-red hover:bg-card-gray transition-colors focus:outline-none cursor-pointer"
+                                >
                                     Delete program
                                 </button>
                             </div>
@@ -287,11 +270,22 @@ function ProgramCard({ program, isOpen, onToggle, canManage, onProgramUpdated, o
             </div>
 
             {isOpen && (
-                <div style={{ marginTop: '12px', borderTop: '1px solid #eee', paddingTop: '12px' }}>
-                    <h4>Events</h4>
+                <div className="mt-3 border-t border-gray pt-3">
+                    <div className="flex justify-between items-center mb-2">
+                        <h4 className="text-sm font-semibold">Events</h4>
 
-                    {loadingEvents && <p>Loading...</p>}
-                    {!loadingEvents && sortedEvents.length === 0 && <p>No events scheduled</p>}
+                        <button
+                            type="button"
+                            onClick={() => openModal('addEvent')}
+                            className="rounded-lg border border-gray hover:bg-card-gray transition-colors text-sm font-medium pl-2 pr-3 py-1.5 cursor-pointer focus:outline-none flex items-center gap-1"
+                        >
+                            <span className="material-symbols-outlined text-xl!">add</span>
+                            Add event
+                        </button>
+                    </div>
+
+                    {loadingEvents && <p className="text-sm">Loading...</p>}
+                    {!loadingEvents && sortedEvents.length === 0 && <p className="text-sm">No events scheduled</p>}
                     {!loadingEvents && sortedEvents.map((event) => (
                         <EventCard
                             key={event.id}
@@ -303,79 +297,83 @@ function ProgramCard({ program, isOpen, onToggle, canManage, onProgramUpdated, o
                         />
                     ))}
 
-                    <h4>Scores</h4>
+                    <hr className="border-gray mb-4 mt-4" />
 
-                    <input
-                        type="file"
-                        accept="application/pdf"
-                        ref={fileInputRef}
-                        onChange={handleFileSelected}
-                        style={{ display: 'none' }}
-                    />
+                    <div className="flex justify-between items-center mt-4 mb-2">
+                        <h4 className="text-sm font-semibold ms-1">Scores</h4>
 
-                    <button
-                        type="button"
-                        onClick={() => fileInputRef.current?.click()}
-                        disabled={isUploading}
-                        style={{ marginBottom: '8px' }}
-                    >
-                        {isUploading ? 'Uploading...' : 'Add score'}
-                    </button>
+                        <button
+                            type="button"
+                            onClick={() => fileInputRef.current?.click()}
+                            disabled={isUploading}
+                            className="rounded-lg border border-gray hover:bg-card-gray transition-colors text-sm font-medium pl-2 pr-3 py-1.5 cursor-pointer focus:outline-none flex items-center gap-1"
+                        >
+                            <span className="material-symbols-outlined text-xl!">add</span>
+                            {isUploading ? 'Uploading...' : 'Add score'}
+                        </button>
+                    </div>
 
-                    {uploadError && <p style={{ color: 'red' }}>{uploadError}</p>}
+                    {uploadError && <p className="text-sm text-red">{uploadError}</p>}
 
-                    {loadingScores && <p>Loading...</p>}
-                    {!loadingScores && scores.length === 0 && <p>No scores available</p>}
+                    {loadingScores && <p className="text-sm">Loading...</p>}
+                    {!loadingScores && scores.length === 0 && <p className="text-sm">No scores available</p>}
                     {!loadingScores && scores.length > 0 && (
-                        <ul>
+                        <div className="grid grid-cols-2 gap-2">
                             {scores.map((score) => (
-                                <li key={score.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px' }}>
-                                    <span>{score.original_name}</span>
-                                    <div style={{ display: 'flex', gap: '4px' }}>
+                                <div key={score.id} className="bg-card-gray rounded-lg p-3 flex justify-between items-center gap-2">
+                                    <span className="text-sm truncate">{score.original_name}</span>
+                                    <div className="flex gap-1 shrink-0">
                                         <button
                                             type="button"
                                             onClick={() => handleDownload(score)}
                                             disabled={downloadingId === score.id}
+                                            className="px-2 py-1 hover:bg-gray rounded-full transition-colors focus:outline-none cursor-pointer disabled:opacity-60 flex items-center gap-1"
                                         >
-                                            {downloadingId === score.id ? 'Downloading...' : 'Download'}
+                                            <span className="material-symbols-outlined text-lg!">
+                                                {downloadingId === score.id ? 'progress_activity' : 'download'}
+                                            </span>
                                         </button>
                                         <button
                                             type="button"
                                             onClick={() => handleDeleteScore(score)}
                                             disabled={deletingScoreId === score.id}
-                                            style={{ color: 'red' }}
+                                            className="rounded-full text-sm px-2 py-1 text-red hover:bg-gray transition-colors focus:outline-none cursor-pointer disabled:opacity-60"
                                         >
-                                            {deletingScoreId === score.id ? 'Deleting...' : 'Delete'}
+                                            <span className="material-symbols-outlined text-lg!">
+                                                {deletingScoreId === score.id ? 'progress_activity' : 'delete'}
+                                            </span>
                                         </button>
                                     </div>
-                                </li>
+                                </div>
                             ))}
-                        </ul>
+                        </div>
                     )}
                 </div>
             )}
 
             {/* MODAL: Add event */}
             {activeModal === 'addEvent' && (
-                <div style={modalOverlayStyle}>
-                    <div style={modalBoxStyle}>
-                        <h3>Add event</h3>
+                <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-100 px-4">
+                    <div className="bg-white rounded-lg p-4 w-full max-w-sm flex flex-col gap-3">
+                        <h3 className="text-base font-semibold ms-1">Add event</h3>
 
-                        <label>
-                            Repertoire
+                        <label className="flex flex-col gap-1">
+                            <span className="text-sm font-medium ms-1">Repertoire</span>
                             <input
                                 value={eventForm.repertoire}
                                 onChange={(e) => setEventForm({ ...eventForm, repertoire: e.target.value })}
                                 disabled={isSavingEvent}
+                                className="rounded-lg border border-gray px-3 py-2 text-sm focus:outline-none disabled:opacity-60"
                             />
                         </label>
 
-                        <label>
-                            Type
+                        <label className="flex flex-col gap-1">
+                            <span className="text-sm font-medium ms-1">Type</span>
                             <select
                                 value={eventForm.type}
                                 onChange={(e) => setEventForm({ ...eventForm, type: e.target.value })}
                                 disabled={isSavingEvent}
+                                className="rounded-lg border border-gray px-3 py-2 text-sm focus:outline-none disabled:opacity-60"
                             >
                                 {EVENT_TYPES.map((t) => (
                                     <option key={t} value={t}>{t}</option>
@@ -383,44 +381,56 @@ function ProgramCard({ program, isOpen, onToggle, canManage, onProgramUpdated, o
                             </select>
                         </label>
 
-                        <label>
-                            Location
+                        <label className="flex flex-col gap-1">
+                            <span className="text-sm font-medium ms-1">Location</span>
                             <input
                                 value={eventForm.location}
                                 onChange={(e) => setEventForm({ ...eventForm, location: e.target.value })}
                                 disabled={isSavingEvent}
+                                className="rounded-lg border border-gray px-3 py-2 text-sm focus:outline-none disabled:opacity-60"
                             />
                         </label>
 
-                        <label>
-                            Start
+                        <label className="flex flex-col gap-1">
+                            <span className="text-sm font-medium ms-1">Start</span>
                             <input
                                 type="datetime-local"
                                 value={eventForm.start_date}
                                 onChange={(e) => setEventForm({ ...eventForm, start_date: e.target.value })}
                                 disabled={isSavingEvent}
+                                className="rounded-lg border border-gray px-3 py-2 text-sm focus:outline-none disabled:opacity-60"
                             />
                         </label>
 
-                        <label>
-                            End
+                        <label className="flex flex-col gap-1">
+                            <span className="text-sm font-medium ms-1">End</span>
                             <input
                                 type="datetime-local"
                                 value={eventForm.end_date}
                                 onChange={(e) => setEventForm({ ...eventForm, end_date: e.target.value })}
                                 disabled={isSavingEvent}
+                                className="rounded-lg border border-gray px-3 py-2 text-sm focus:outline-none disabled:opacity-60"
                             />
                         </label>
 
-                        {eventError && <p style={{ color: 'red' }}>{eventError}</p>}
+                        {eventError && <p className="text-sm text-red">{eventError}</p>}
 
-                        <div style={{ display: 'flex', gap: '0.5rem' }}>
-                            <button onClick={handleCreateEvent} disabled={isSavingEvent}>
-                                {isSavingEvent ? 'Saving...' : 'Save'}
-                            </button>
-                            <button onClick={() => setActiveModal(null)} disabled={isSavingEvent}>
+                        <div className="flex gap-2 mt-1">
+                            <button
+                                onClick={() => setActiveModal(null)}
+                                disabled={isSavingEvent}
+                                className="flex-1 rounded-lg border border-gray text-sm font-medium py-2 hover:bg-card-gray transition-colors focus:outline-none disabled:opacity-60 cursor-pointer"
+                            >
                                 Cancel
                             </button>
+                            <button
+                                onClick={handleCreateEvent}
+                                disabled={isSavingEvent}
+                                className="flex-1 rounded-lg border border-black bg-black text-white text-sm font-medium py-2 cursor-pointer focus:outline-none disabled:opacity-60"
+                            >
+                                {isSavingEvent ? 'Saving...' : 'Save'}
+                            </button>
+
                         </div>
                     </div>
                 </div>
@@ -428,65 +438,66 @@ function ProgramCard({ program, isOpen, onToggle, canManage, onProgramUpdated, o
 
             {/* MODAL: Edit details */}
             {activeModal === 'editDetails' && (
-                <div style={modalOverlayStyle}>
-                    <div style={modalBoxStyle}>
-                        <h3>Edit details</h3>
+                <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-100 px-4">
+                    <div className="bg-white rounded-lg p-4 w-full max-w-sm flex flex-col gap-3">
+                        <h3 className="text-base font-semibold ms-1">Edit details</h3>
 
-                        <label>
-                            Name
+                        <label className="flex flex-col gap-1">
+                            <span className="text-sm font-medium ms-1">Name</span>
                             <input
                                 value={detailsForm.name}
                                 onChange={(e) => setDetailsForm({ ...detailsForm, name: e.target.value })}
                                 disabled={isSavingDetails}
+                                className="rounded-lg border border-gray px-3 py-2 text-sm focus:outline-none disabled:opacity-60"
                             />
                         </label>
 
-                        <label>
-                            Start date
+                        <label className="flex flex-col gap-1">
+                            <span className="text-sm font-medium ms-1">Start date</span>
                             <input
                                 type="date"
                                 value={detailsForm.start_date}
                                 onChange={(e) => setDetailsForm({ ...detailsForm, start_date: e.target.value })}
                                 disabled={isSavingDetails}
+                                className="rounded-lg border border-gray px-3 py-2 text-sm focus:outline-none disabled:opacity-60"
                             />
                         </label>
 
-                        <label>
-                            End date
+                        <label className="flex flex-col gap-1">
+                            <span className="text-sm font-medium ms-1">End date</span>
                             <input
                                 type="date"
                                 value={detailsForm.end_date}
                                 onChange={(e) => setDetailsForm({ ...detailsForm, end_date: e.target.value })}
                                 disabled={isSavingDetails}
+                                className="rounded-lg border border-gray px-3 py-2 text-sm focus:outline-none disabled:opacity-60"
                             />
                         </label>
 
-                        {detailsError && <p style={{ color: 'red' }}>{detailsError}</p>}
+                        {detailsError && <p className="text-sm text-red">{detailsError}</p>}
 
-                        <div style={{ display: 'flex', gap: '0.5rem' }}>
-                            <button onClick={handleUpdateDetails} disabled={isSavingDetails}>
-                                {isSavingDetails ? 'Saving...' : 'Save'}
-                            </button>
-                            <button onClick={() => setActiveModal(null)} disabled={isSavingDetails}>
+                        <div className="flex gap-2 mt-1">
+                            <button
+                                onClick={() => setActiveModal(null)}
+                                disabled={isSavingDetails}
+                                className="flex-1 rounded-lg border border-gray text-sm font-medium py-2 hover:bg-card-gray transition-colors focus:outline-none disabled:opacity-60 cursor-pointer"
+                            >
                                 Cancel
                             </button>
+                            <button
+                                onClick={handleUpdateDetails}
+                                disabled={isSavingDetails}
+                                className="flex-1 rounded-lg border border-black bg-black text-white text-sm font-medium py-2 cursor-pointer focus:outline-none disabled:opacity-60"
+                            >
+                                {isSavingDetails ? 'Saving...' : 'Save'}
+                            </button>
+                            
                         </div>
                     </div>
                 </div>
             )}
         </div>
     )
-}
-
-const modalOverlayStyle = {
-    position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-    background: 'rgba(0,0,0,0.4)', display: 'flex',
-    alignItems: 'center', justifyContent: 'center', zIndex: 100
-}
-
-const modalBoxStyle = {
-    background: 'white', padding: '1rem', width: '320px',
-    display: 'flex', flexDirection: 'column', gap: '0.5rem'
 }
 
 export default ProgramCard
