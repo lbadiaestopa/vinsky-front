@@ -61,6 +61,7 @@ export function AuthProvider({ children }) {
         login,
         logout,
         updateUser,
+        persistSession,
         loading,
     }
 
