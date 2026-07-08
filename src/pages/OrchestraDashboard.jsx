@@ -6,6 +6,12 @@ import { updateOrchestra, deleteOrchestra } from '../services/orchestraService'
 import ProgramCard from '../components/ProgramCard'
 import MemberList from '../components/MemberList'
 import { createMembership } from '../services/membershipService'
+import CreateProgramModal from '../components/CreateProgramModal'
+import AddMemberModal from '../components/AddMemberModal'
+import ProgramList from '../components/ProgramList'
+import { SECTION_OPTIONS } from '../constants/sections'
+import OrchestraSettings from '../components/OrchestraSettings'
+import DashboardTabs from '../components/DashboardTabs'
 
 function OrchestraDashboard() {
     const { id } = useParams()
@@ -54,10 +60,12 @@ function OrchestraDashboard() {
                     return
                 }
 
-                const orchestraRes = await client.get(`/orchestras/${orchestraId}`)
-                setCurrentOrchestra(orchestraRes.data.data ?? orchestraRes.data)
+                const [orchestraRes, programsData] = await Promise.all([
+                    client.get(`/orchestras/${orchestraId}`),
+                    getPrograms(orchestraId)
+                ])
 
-                const programsData = await getPrograms(orchestraId)
+                setCurrentOrchestra(orchestraRes.data.data ?? orchestraRes.data)
                 setPrograms(programsData)
             } catch (error) {
                 console.error('OrchestraDashboard load error:', error)
@@ -155,13 +163,6 @@ function OrchestraDashboard() {
         }
     }
 
-    const SECTION_OPTIONS = [
-        'violin_1', 'violin_2', 'viola', 'cello', 'double_bass',
-        'french_horn', 'trumpet', 'trombone', 'tuba', 'flute',
-        'oboe', 'clarinet', 'bassoon', 'percussion', 'mallet',
-        'vocal', 'other'
-    ]
-
     const openAddMemberModal = () => {
         setMemberForm({ email: '', role: 'member', member_type: 'core', instrument: '', section: 'violin_1' })
         setMemberError(null)
@@ -193,9 +194,15 @@ function OrchestraDashboard() {
     }
 
     const tabClass = (tab) =>
-        `rounded-lg text-sm font-medium px-4 py-2 cursor-pointer focus:outline-none disabled:cursor-default ${
-            activeTab === tab ? 'bg-black text-white' : 'text-black hover:bg-card-gray transition-colors'
+        `rounded-lg text-sm font-medium px-4 py-2 cursor-pointer focus:outline-none disabled:cursor-default ${activeTab === tab ? 'bg-black text-white' : 'text-black hover:bg-card-gray transition-colors'
         }`
+
+    const tabs = [
+        { id: 'programs', label: 'Programs' },
+        { id: 'past-programs', label: 'Past Programs' },
+        { id: 'members', label: 'Members' },
+        { id: 'settings', label: 'Settings' },
+    ]
 
     return (
         <div className="bg-white min-h-screen p-8">
@@ -203,77 +210,47 @@ function OrchestraDashboard() {
                 <h1 className="text-2xl font-semibold">{currentOrchestra.name}</h1>
                 <p className="text-sm opacity-75 mb-6">{currentOrchestra.location}</p>
 
-                <nav className="flex gap-2 mb-6">
-                    <button type="button" onClick={() => setActiveTab('programs')} disabled={activeTab === 'programs'} className={tabClass('programs')}>
-                        Programs
-                    </button>
-                    <button type="button" onClick={() => setActiveTab('past-programs')} disabled={activeTab === 'past-programs'} className={tabClass('past-programs')}>
-                        Past Programs
-                    </button>
-                    <button type="button" onClick={() => setActiveTab('members')} disabled={activeTab === 'members'} className={tabClass('members')}>
-                        Members
-                    </button>
-                    <button type="button" onClick={() => setActiveTab('settings')} disabled={activeTab === 'settings'} className={tabClass('settings')}>
-                        Settings
-                    </button>
-                </nav>
+                <DashboardTabs
+                    tabs={tabs}
+                    activeTab={activeTab}
+                    onChange={setActiveTab}
+                />
 
                 {activeTab === 'programs' && (
-                    <div>
-                        <div className="flex justify-between items-center mb-4">
-                            <h2 className="text-2xl font-semibold">Programs</h2>
+                    <ProgramList
+                        title="Programs"
+                        programs={activePrograms}
+                        selectedProgramId={selectedProgramId}
+                        setSelectedProgramId={setSelectedProgramId}
+                        canManage
+                        onProgramUpdated={handleProgramUpdated}
+                        onProgramDeleted={handleProgramDeleted}
+                        action={
                             <button
                                 type="button"
                                 onClick={openCreateProgramModal}
                                 className="rounded-lg border border-black bg-black text-white text-sm font-medium px-3 py-1.5 cursor-pointer focus:outline-none flex items-center gap-1"
                             >
-                                <span className="material-symbols-outlined text-xl!">add</span>
+                                <span className="material-symbols-outlined text-xl!">
+                                    add
+                                </span>
+
                                 Add program
                             </button>
-                        </div>
-
-                        {activePrograms.length === 0 && <p className="text-sm">No active programs.</p>}
-
-                        <div className="flex flex-col gap-3">
-                            {activePrograms.map((program) => (
-                                <ProgramCard
-                                    key={program.id}
-                                    program={program}
-                                    isOpen={selectedProgramId === program.id}
-                                    onToggle={() =>
-                                        setSelectedProgramId(selectedProgramId === program.id ? null : program.id)
-                                    }
-                                    canManage={true}
-                                    onProgramUpdated={handleProgramUpdated}
-                                    onProgramDeleted={handleProgramDeleted}
-                                />
-                            ))}
-                        </div>
-                    </div>
+                        }
+                    />
                 )}
 
                 {activeTab === 'past-programs' && (
-                    <div>
-                        <h2 className="text-2xl font-semibold mb-4">Past Programs</h2>
-
-                        {pastPrograms.length === 0 && <p className="text-sm">No past programs.</p>}
-
-                        <div className="flex flex-col gap-3">
-                            {pastPrograms.map((program) => (
-                                <ProgramCard
-                                    key={program.id}
-                                    program={program}
-                                    isOpen={selectedProgramId === program.id}
-                                    onToggle={() =>
-                                        setSelectedProgramId(selectedProgramId === program.id ? null : program.id)
-                                    }
-                                    canManage={true}
-                                    onProgramUpdated={handleProgramUpdated}
-                                    onProgramDeleted={handleProgramDeleted}
-                                />
-                            ))}
-                        </div>
-                    </div>
+                    <ProgramList
+                        title="Past Programs"
+                        programs={pastPrograms}
+                        selectedProgramId={selectedProgramId}
+                        setSelectedProgramId={setSelectedProgramId}
+                        canManage
+                        onProgramUpdated={handleProgramUpdated}
+                        onProgramDeleted={handleProgramDeleted}
+                    />
                 )}
 
                 {activeTab === 'members' && (
@@ -295,210 +272,38 @@ function OrchestraDashboard() {
                 )}
 
                 {activeTab === 'settings' && (
-                    <div>
-                        <h2 className="text-2xl font-semibold mb-4">Settings</h2>
-
-                        <div className="flex flex-col gap-4 max-w-sm">
-                            <label className="flex flex-col gap-1">
-                                <span className="text-sm font-medium ms-1">Name</span>
-                                <input
-                                    name="name"
-                                    value={currentOrchestra.name}
-                                    onChange={handleChange}
-                                    disabled={isSaving}
-                                    className="rounded-lg border border-gray px-3 py-2 text-sm focus:outline-none disabled:opacity-60"
-                                />
-                            </label>
-
-                            <label className="flex flex-col gap-1">
-                                <span className="text-sm font-medium ms-1">Location</span>
-                                <input
-                                    name="location"
-                                    value={currentOrchestra.location}
-                                    onChange={handleChange}
-                                    disabled={isSaving}
-                                    className="rounded-lg border border-gray px-3 py-2 text-sm focus:outline-none disabled:opacity-60"
-                                />
-                            </label>
-
-                            <button
-                                type="button"
-                                onClick={handleSave}
-                                disabled={isSaving}
-                                className="rounded-lg border border-black bg-black text-white text-sm font-medium py-2 cursor-pointer focus:outline-none disabled:opacity-60"
-                            >
-                                {isSaving ? 'Saving...' : 'Save'}
-                            </button>
-
-                            {saveStatus === 'success' && (
-                                <p className="text-sm text-green-600">Changes saved successfully</p>
-                            )}
-                            {saveStatus === 'error' && (
-                                <p className="text-sm text-red">Error saving changes</p>
-                            )}
-
-                            <hr className="border-gray my-4" />
-
-                            <button
-                                type="button"
-                                onClick={handleDeleteOrchestra}
-                                disabled={isDeleting}
-                                className="rounded-lg bg-red border border-red text-white text-sm font-medium py-2 px-4 focus:outline-none disabled:opacity-60 cursor-pointer"
-                            >
-                                {isDeleting ? 'Deleting...' : 'Delete orchestra'}
-                            </button>
-                        </div>
-                    </div>
+                    <OrchestraSettings
+                        orchestra={currentOrchestra}
+                        isSaving={isSaving}
+                        isDeleting={isDeleting}
+                        saveStatus={saveStatus}
+                        onChange={handleChange}
+                        onSave={handleSave}
+                        onDelete={handleDeleteOrchestra}
+                    />
                 )}
             </div>
 
-            {showCreateProgramModal && (
-                <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-100 px-4">
-                    <div className="bg-white rounded-lg p-4 w-full max-w-sm flex flex-col gap-3">
-                        <h3 className="text-base font-semibold">Add program</h3>
+            <CreateProgramModal
+                open={showCreateProgramModal}
+                form={programForm}
+                setForm={setProgramForm}
+                loading={isSavingProgram}
+                error={programError}
+                onCreate={handleCreateProgram}
+                onClose={() => setShowCreateProgramModal(false)}
+            />
 
-                        <label className="flex flex-col gap-1">
-                            <span className="text-sm font-medium ms-1">Name</span>
-                            <input
-                                value={programForm.name}
-                                onChange={(e) => setProgramForm({ ...programForm, name: e.target.value })}
-                                disabled={isSavingProgram}
-                                className="rounded-lg border border-gray px-3 py-2 text-sm focus:outline-none disabled:opacity-60"
-                            />
-                        </label>
-
-                        <label className="flex flex-col gap-1">
-                            <span className="text-sm font-medium ms-1">Start date</span>
-                            <input
-                                type="date"
-                                value={programForm.start_date}
-                                onChange={(e) => setProgramForm({ ...programForm, start_date: e.target.value })}
-                                disabled={isSavingProgram}
-                                className="rounded-lg border border-gray px-3 py-2 text-sm focus:outline-none disabled:opacity-60"
-                            />
-                        </label>
-
-                        <label className="flex flex-col gap-1">
-                            <span className="text-sm font-medium ms-1">End date</span>
-                            <input
-                                type="date"
-                                value={programForm.end_date}
-                                onChange={(e) => setProgramForm({ ...programForm, end_date: e.target.value })}
-                                disabled={isSavingProgram}
-                                className="rounded-lg border border-gray px-3 py-2 text-sm focus:outline-none disabled:opacity-60"
-                            />
-                        </label>
-
-                        {programError && <p className="text-sm text-red">{programError}</p>}
-
-                        <div className="flex gap-2 mt-1">
-                            <button
-                                onClick={handleCreateProgram}
-                                disabled={isSavingProgram}
-                                className="flex-1 rounded-lg border border-black bg-black text-white text-sm font-medium py-2 cursor-pointer focus:outline-none disabled:opacity-60"
-                            >
-                                {isSavingProgram ? 'Saving...' : 'Create'}
-                            </button>
-                            <button
-                                onClick={() => setShowCreateProgramModal(false)}
-                                disabled={isSavingProgram}
-                                className="flex-1 rounded-lg border border-gray text-sm font-medium py-2 hover:bg-card-gray transition-colors focus:outline-none disabled:opacity-60 cursor-pointer"
-                            >
-                                Cancel
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {showAddMemberModal && (
-                <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-100 px-4">
-                    <div className="bg-white rounded-lg p-4 w-full max-w-sm flex flex-col gap-3">
-                        <h3 className="text-base font-semibold">Add member</h3>
-
-                        <label className="flex flex-col gap-1">
-                            <span className="text-sm font-medium ms-1">Email</span>
-                            <input
-                                type="email"
-                                value={memberForm.email}
-                                onChange={(e) => setMemberForm({ ...memberForm, email: e.target.value })}
-                                disabled={isSavingMember}
-                                className="rounded-lg border border-gray px-3 py-2 text-sm focus:outline-none disabled:opacity-60"
-                            />
-                        </label>
-
-                        <label className="flex flex-col gap-1">
-                            <span className="text-sm font-medium ms-1">Role</span>
-                            <select
-                                value={memberForm.role}
-                                onChange={(e) => setMemberForm({ ...memberForm, role: e.target.value })}
-                                disabled={isSavingMember}
-                                className="rounded-lg border border-gray px-3 py-2 text-sm focus:outline-none disabled:opacity-60"
-                            >
-                                <option value="admin">admin</option>
-                                <option value="member">member</option>
-                            </select>
-                        </label>
-
-                        <label className="flex flex-col gap-1">
-                            <span className="text-sm font-medium ms-1">Member type</span>
-                            <select
-                                value={memberForm.member_type}
-                                onChange={(e) => setMemberForm({ ...memberForm, member_type: e.target.value })}
-                                disabled={isSavingMember}
-                                className="rounded-lg border border-gray px-3 py-2 text-sm focus:outline-none disabled:opacity-60"
-                            >
-                                <option value="core">core</option>
-                                <option value="substitute">substitute</option>
-                                <option value="guest">guest</option>
-                            </select>
-                        </label>
-
-                        <label className="flex flex-col gap-1">
-                            <span className="text-sm font-medium ms-1">Instrument</span>
-                            <input
-                                value={memberForm.instrument}
-                                onChange={(e) => setMemberForm({ ...memberForm, instrument: e.target.value })}
-                                disabled={isSavingMember}
-                                className="rounded-lg border border-gray px-3 py-2 text-sm focus:outline-none disabled:opacity-60"
-                            />
-                        </label>
-
-                        <label className="flex flex-col gap-1">
-                            <span className="text-sm font-medium ms-1">Section</span>
-                            <select
-                                value={memberForm.section}
-                                onChange={(e) => setMemberForm({ ...memberForm, section: e.target.value })}
-                                disabled={isSavingMember}
-                                className="rounded-lg border border-gray px-3 py-2 text-sm focus:outline-none disabled:opacity-60"
-                            >
-                                {SECTION_OPTIONS.map((s) => (
-                                    <option key={s} value={s}>{s}</option>
-                                ))}
-                            </select>
-                        </label>
-
-                        {memberError && <p className="text-sm text-red">{memberError}</p>}
-
-                        <div className="flex gap-2 mt-1">
-                            <button
-                                onClick={handleAddMember}
-                                disabled={isSavingMember}
-                                className="flex-1 rounded-lg border border-black bg-black text-white text-sm font-medium py-2 cursor-pointer focus:outline-none disabled:opacity-60"
-                            >
-                                {isSavingMember ? 'Saving...' : 'Create'}
-                            </button>
-                            <button
-                                onClick={() => setShowAddMemberModal(false)}
-                                disabled={isSavingMember}
-                                className="flex-1 rounded-lg border border-gray text-sm font-medium py-2 hover:bg-card-gray transition-colors focus:outline-none disabled:opacity-60 cursor-pointer"
-                            >
-                                Cancel
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
+            <AddMemberModal
+                open={showAddMemberModal}
+                form={memberForm}
+                setForm={setMemberForm}
+                loading={isSavingMember}
+                error={memberError}
+                sectionOptions={SECTION_OPTIONS}
+                onCreate={handleAddMember}
+                onClose={() => setShowAddMemberModal(false)}
+            />
         </div>
     )
 }
