@@ -86,7 +86,7 @@ function Sidebar() {
 
     return (
         <>
-            <aside className="w-80 min-h-screen bg-white border-r border-gray pb-4 pt-2 pl-4 pr-4 flex flex-col">
+            <aside className="w-80 min-h-screen bg-white border-r border-gray pb-4 pt-2 pl-4 pr-4 flex flex-col sticky top-0 h-screen">
 
                 <nav>
                     <ul className="list-none p-0">
