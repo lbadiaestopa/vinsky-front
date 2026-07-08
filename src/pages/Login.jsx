@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import FormInput from '../components/FormInput'
 
 function Login() {
     const [email, setEmail] = useState('')
@@ -37,37 +38,37 @@ function Login() {
     return (
         <div className="min-h-screen bg-white flex items-center justify-center px-4">
             <div className="w-full max-w-sm">
-                <h1 className="text-2xl font-semibold mb-6 ms-1">Login to Vinsky</h1>
+                <h1 className="text-2xl font-semibold mb-6 ms-1">
+                    Login to Vinsky
+                </h1>
 
                 <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-                    <div className="flex flex-col gap-1">
-                        <label htmlFor="email" className="text-sm font-medium ms-1">Email</label>
-                        <input
-                            id="email"
-                            name="email"
-                            type="email"
-                            value={email}
-                            autoComplete='email'
-                            onChange={(e) => setEmail(e.target.value)}
-                            required
-                            className="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none"
-                        />
-                    </div>
+                    <FormInput
+                        id="email"
+                        name="email"
+                        label="Email"
+                        type="email"
+                        value={email}
+                        autoComplete="email"
+                        required
+                        disabled={isSubmitting}
+                        onChange={(e) => setEmail(e.target.value)}
+                    />
 
-                    <div className="flex flex-col gap-1">
-                        <label className="text-sm font-medium ms-1">Password</label>
-                        <input
-                            type="password"
-                            value={password}
-                            autoComplete='current-password'
-                            onChange={(e) => setPassword(e.target.value)}
-                            required
-                            className="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none"
-                        />
-                    </div>
+                    <FormInput
+                        label="Password"
+                        type="password"
+                        value={password}
+                        autoComplete="current-password"
+                        required
+                        disabled={isSubmitting}
+                        onChange={(e) => setPassword(e.target.value)}
+                    />
 
                     {error && (
-                        <p className="text-sm text-red-600 ms-1">{error}</p>
+                        <p className="text-sm text-red-600 ms-1">
+                            {error}
+                        </p>
                     )}
 
                     <button
@@ -80,7 +81,7 @@ function Login() {
                 </form>
 
                 <p className="text-sm mt-4">
-                    I don't have an account.{' '}
+                    I don't have an account.{` `}
                     <Link to="/register" className="font-medium underline">
                         Register now
                     </Link>
