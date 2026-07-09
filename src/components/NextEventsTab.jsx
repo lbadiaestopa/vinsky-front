@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import EventCard from './EventCard'
-import { EVENT_TYPES_ORDER, EVENT_TYPE_LABELS } from '../utils/eventTypes'
+import { EVENT_TYPES_ORDER, EVENT_TYPE_LABELS } from '../constants/eventTypes'
 
 function NextEventsTab({ events, programsData, orchestrasData, onProgramClick }) {
     const [orchestraFilter, setOrchestraFilter] = useState('')

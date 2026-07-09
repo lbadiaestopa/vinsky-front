@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { EVENT_TYPE_LABELS } from '../utils/eventTypes'
+import { EVENT_TYPE_LABELS } from '../constants/eventTypes'
 import { deleteEvent } from '../services/eventService'
 import EditEventModal from './EditEventModal'
 

@@ -1,5 +1,5 @@
 import FormInput from './FormInput'
-import { EVENT_TYPES_ORDER, EVENT_TYPE_LABELS } from '../utils/eventTypes'
+import { EVENT_TYPES_ORDER, EVENT_TYPE_LABELS } from '../constants/eventTypes'
 import { useEventForm } from '../hooks/useEventForm'
 
 function EditEventModal({

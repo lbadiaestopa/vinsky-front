@@ -61,6 +61,14 @@ function CreateProgramModal({
                 <div className="flex gap-2 mt-1">
                     <button
                         type="button"
+                        onClick={onClose}
+                        disabled={loading}
+                        className="flex-1 rounded-lg border border-gray text-sm font-medium py-2 hover:bg-card-gray transition-colors focus:outline-none disabled:opacity-60 cursor-pointer"
+                    >
+                        Cancel
+                    </button>
+                    <button
+                        type="button"
                         onClick={onCreate}
                         disabled={loading}
                         className="flex-1 rounded-lg border border-black bg-black text-white text-sm font-medium py-2 cursor-pointer focus:outline-none disabled:opacity-60"
@@ -68,14 +76,7 @@ function CreateProgramModal({
                         {loading ? 'Saving...' : 'Create'}
                     </button>
 
-                    <button
-                        type="button"
-                        onClick={onClose}
-                        disabled={loading}
-                        className="flex-1 rounded-lg border border-gray text-sm font-medium py-2 hover:bg-card-gray transition-colors focus:outline-none disabled:opacity-60 cursor-pointer"
-                    >
-                        Cancel
-                    </button>
+
                 </div>
             </div>
         </div>
