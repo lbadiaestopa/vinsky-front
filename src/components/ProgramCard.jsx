@@ -1,4 +1,5 @@
 import EventCard from './EventCard'
+import { useState, useEffect, useRef } from 'react'
 import { useProgramCard } from '../hooks/useProgramCard'
 import AddEventModal from './AddEventModal'
 import EditProgramModal from './EditProgramModal'
@@ -16,6 +17,24 @@ function ProgramCard({ program, isOpen, onToggle, canManage, onProgramUpdated, o
         isDeleting, handleDelete
     } = useProgramCard(program, isOpen, onProgramUpdated, onProgramDeleted)
 
+    const menuRef = useRef(null)
+
+    useEffect(() => {
+        if (!menuOpen) return
+
+        function handleClickOutside(event) {
+            if (menuRef.current && !menuRef.current.contains(event.target)) {
+                closeMenu()
+            }
+        }
+
+        document.addEventListener('mousedown', handleClickOutside)
+
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside)
+        }
+    }, [menuOpen, closeMenu])
+
     return (
         <div className={`border border-gray rounded-lg p-4 mb-3 relative ${isDeleting ? 'opacity-50' : ''}`}>
             <div className="flex justify-between items-start">
@@ -29,7 +48,10 @@ function ProgramCard({ program, isOpen, onToggle, canManage, onProgramUpdated, o
                 </div>
 
                 {canManage && (
-                    <div className="relative">
+                    <div
+                        className="relative"
+                        ref={menuRef}
+                    >
                         <button
                             type="button"
                             onClick={(e) => {
@@ -78,7 +100,6 @@ function ProgramCard({ program, isOpen, onToggle, canManage, onProgramUpdated, o
                         </button>
                     </div>
 
-                    {loadingEvents && <p className="text-sm">Loading...</p>}
                     {!loadingEvents && sortedEvents.length === 0 && <p className="text-sm">No events scheduled</p>}
                     {!loadingEvents && sortedEvents.map((event) => (
                         <EventCard

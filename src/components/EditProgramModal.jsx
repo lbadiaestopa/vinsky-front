@@ -12,8 +12,14 @@ function EditProgramModal({
     if (!open) return null
 
     return (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-100 px-4">
-            <div className="bg-white rounded-lg p-4 w-full max-w-sm flex flex-col gap-3">
+        <div
+            className="fixed inset-0 bg-black/40 flex items-center justify-center z-100 px-4"
+            onClick={onClose}
+        >
+            <div
+                className="bg-white rounded-lg p-4 w-full max-w-sm flex flex-col gap-3"
+                onClick={(e) => e.stopPropagation()}
+            >
                 <h3 className="text-base font-semibold ms-1">Edit details</h3>
 
                 <FormInput
