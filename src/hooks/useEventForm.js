@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { updateEvent } from '../services/eventService'
 import { toDatetimeLocal, fromDatetimeLocal } from '../utils/dates'
 
@@ -16,6 +16,11 @@ export function useEventForm(event, programId) {
     const [form, setForm] = useState(() => createForm(event))
     const [isSaving, setIsSaving] = useState(false)
     const [error, setError] = useState(null)
+
+    useEffect(() => {
+        setForm(createForm(event))
+        setError(null)
+    }, [event])
 
     const reset = () => {
         setError(null)
