@@ -1,5 +1,5 @@
 import FormInput from './FormInput'
-import { EVENT_TYPES_ORDER } from '../constants/eventTypes'
+import { EVENT_TYPES_ORDER, EVENT_TYPE_LABELS } from '../constants/eventTypes'
 
 function AddEventModal({
     open,
@@ -26,19 +26,26 @@ function AddEventModal({
                     disabled={isSaving}
                 />
 
-                <FormInput
-                    label="Type"
-                    type="select"
-                    value={form.type}
-                    onChange={(e) =>
-                        setForm({ ...form, type: e.target.value })
-                    }
-                    options={EVENT_TYPES_ORDER.map(type => ({
-                        value: type,
-                        label: type
-                    }))}
-                    disabled={isSaving}
-                />
+                <div className="flex flex-col gap-1">
+                    <label className="text-sm font-medium ms-1">
+                        Type
+                    </label>
+
+                    <select
+                        value={form.type}
+                        onChange={(e) =>
+                            setForm({ ...form, type: e.target.value })
+                        }
+                        disabled={isSaving}
+                        className="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none"
+                    >
+                        {EVENT_TYPES_ORDER.map((type) => (
+                            <option key={type} value={type}>
+                                {EVENT_TYPE_LABELS[type]}
+                            </option>
+                        ))}
+                    </select>
+                </div>
 
                 <FormInput
                     label="Location"
