@@ -80,7 +80,15 @@ function MemberList({ orchestraId, refreshKey }) {
 
                                         <button
                                             type="button"
-                                            onClick={() => removeMember(m.id)}
+                                            onClick={() => {
+                                                const confirmed = window.confirm(
+                                                    `Remove ${m.user.name} ${m.user.last_name} from the orchestra?`
+                                                )
+
+                                                if (!confirmed) return
+
+                                                removeMember(m.id)
+                                            }}
                                             className="rounded-full text-red px-2 py-1 hover:bg-gray transition-colors focus:outline-none cursor-pointer flex items-center"
                                         >
                                             <span className="material-symbols-outlined text-base!">delete</span>
