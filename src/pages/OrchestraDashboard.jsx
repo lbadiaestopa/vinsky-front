@@ -28,6 +28,7 @@ function OrchestraDashboard() {
     const [programError, setProgramError] = useState(null)
 
     const [currentOrchestra, setCurrentOrchestra] = useState(null)
+    const [orchestraForm, setOrchestraForm] = useState(null)
     const [programs, setPrograms] = useState([])
     const [hasAccess, setHasAccess] = useState(null)
     const [loading, setLoading] = useState(true)
@@ -65,7 +66,13 @@ function OrchestraDashboard() {
                     getPrograms(orchestraId)
                 ])
 
-                setCurrentOrchestra(orchestraRes.data.data ?? orchestraRes.data)
+                const orchestra = orchestraRes.data.data ?? orchestraRes.data
+
+                setCurrentOrchestra(orchestra)
+                setOrchestraForm({
+                    name: orchestra.name,
+                    location: orchestra.location
+                })
                 setPrograms(programsData)
             } catch (error) {
                 console.error('OrchestraDashboard load error:', error)
@@ -79,7 +86,7 @@ function OrchestraDashboard() {
 
     const handleChange = (e) => {
         const { name, value } = e.target
-        setCurrentOrchestra((prev) => ({ ...prev, [name]: value }))
+        setOrchestraForm((prev) => ({ ...prev, [name]: value }))
     }
 
     const handleSave = async () => {
@@ -87,11 +94,13 @@ function OrchestraDashboard() {
         setSaveStatus(null)
 
         try {
-            const updated = await updateOrchestra(orchestraId, {
-                name: currentOrchestra.name,
-                location: currentOrchestra.location
-            })
+            const updated = await updateOrchestra(orchestraId, orchestraForm)
+
             setCurrentOrchestra(updated)
+            setOrchestraForm({
+                name: updated.name,
+                location: updated.location
+            })
             setSaveStatus('success')
         } catch (error) {
             console.error('Save orchestra error:', error)
@@ -273,7 +282,7 @@ function OrchestraDashboard() {
 
                 {activeTab === 'settings' && (
                     <OrchestraSettings
-                        orchestra={currentOrchestra}
+                        orchestra={orchestraForm}
                         isSaving={isSaving}
                         isDeleting={isDeleting}
                         saveStatus={saveStatus}
