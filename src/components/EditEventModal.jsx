@@ -107,6 +107,13 @@ function EditEventModal({
 
                 <div className="flex gap-2">
                     <button
+                        onClick={handleClose}
+                        disabled={isSaving}
+                        className="flex-1 rounded-lg border border-gray text-sm font-medium py-2 hover:bg-card-gray transition-colors focus:outline-none disabled:opacity-60 cursor-pointer"
+                    >
+                        Cancel
+                    </button>
+                    <button
                         onClick={handleSave}
                         disabled={isSaving}
                         className="flex-1 rounded-lg border border-black bg-black text-white text-sm font-medium py-2 cursor-pointer focus:outline-none disabled:opacity-60"
@@ -114,13 +121,7 @@ function EditEventModal({
                         {isSaving ? 'Saving...' : 'Save'}
                     </button>
 
-                    <button
-                        onClick={handleClose}
-                        disabled={isSaving}
-                        className="flex-1 rounded-lg border border-gray text-sm font-medium py-2 hover:bg-card-gray transition-colors focus:outline-none disabled:opacity-60 cursor-pointer"
-                    >
-                        Cancel
-                    </button>
+                    
                 </div>
             </div>
         </div>
