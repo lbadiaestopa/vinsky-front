@@ -15,6 +15,7 @@ function Home() {
         orchestrasData,
         programsData,
         eventsData,
+        adminOrchestraIds,
     } = useHomeData()
 
     const handleProgramClick = (programId) => {
@@ -51,6 +52,7 @@ function Home() {
                         orchestras={orchestrasData}
                         selectedProgramId={selectedProgramId}
                         onToggleProgram={setSelectedProgramId}
+                        adminOrchestraIds={adminOrchestraIds}
                     />
                 )}
             </div>

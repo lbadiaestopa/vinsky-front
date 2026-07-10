@@ -90,14 +90,16 @@ function ProgramCard({ program, isOpen, onToggle, canManage, onProgramUpdated, o
                     <div className="flex justify-between items-center mb-2">
                         <h4 className="text-sm font-semibold">Events</h4>
 
-                        <button
-                            type="button"
-                            onClick={() => openModal('addEvent')}
-                            className="rounded-lg border border-gray hover:bg-card-gray transition-colors text-sm font-medium pl-2 pr-3 py-1.5 cursor-pointer focus:outline-none flex items-center gap-1"
-                        >
-                            <span className="material-symbols-outlined text-xl!">add</span>
-                            Add event
-                        </button>
+                        {canManage && (
+                            <button
+                                type="button"
+                                onClick={() => openModal('addEvent')}
+                                className="rounded-lg border border-gray hover:bg-card-gray transition-colors text-sm font-medium pl-2 pr-3 py-1.5 cursor-pointer focus:outline-none flex items-center gap-1"
+                            >
+                                <span className="material-symbols-outlined text-xl!">add</span>
+                                Add event
+                            </button>
+                        )}
                     </div>
 
                     {!loadingEvents && sortedEvents.length === 0 && <p className="text-sm">No events scheduled</p>}
@@ -106,7 +108,7 @@ function ProgramCard({ program, isOpen, onToggle, canManage, onProgramUpdated, o
                             key={event.id}
                             event={event}
                             programId={program.id}
-                            canManage={true}
+                            canManage={canManage}
                             onEventUpdated={handleEventUpdated}
                             onEventDeleted={handleEventDeleted}
                         />
@@ -117,15 +119,17 @@ function ProgramCard({ program, isOpen, onToggle, canManage, onProgramUpdated, o
                     <div className="flex justify-between items-center mt-4 mb-2">
                         <h4 className="text-sm font-semibold ms-1">Scores</h4>
 
-                        <button
-                            type="button"
-                            onClick={() => fileInputRef.current?.click()}
-                            disabled={isUploading}
-                            className="rounded-lg border border-gray hover:bg-card-gray transition-colors text-sm font-medium pl-2 pr-3 py-1.5 cursor-pointer focus:outline-none flex items-center gap-1"
-                        >
-                            <span className="material-symbols-outlined text-xl!">add</span>
-                            {isUploading ? 'Uploading...' : 'Add score'}
-                        </button>
+                        {canManage && (
+                            <button
+                                type="button"
+                                onClick={() => fileInputRef.current?.click()}
+                                disabled={isUploading}
+                                className="rounded-lg border border-gray hover:bg-card-gray transition-colors text-sm font-medium pl-2 pr-3 py-1.5 cursor-pointer focus:outline-none flex items-center gap-1"
+                            >
+                                <span className="material-symbols-outlined text-xl!">add</span>
+                                {isUploading ? 'Uploading...' : 'Add score'}
+                            </button>)}
+
                     </div>
 
                     <input

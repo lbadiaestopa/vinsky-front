@@ -1,7 +1,15 @@
 import ProgramCard from './ProgramCard'
 
-function ProgramsTab({ programs, orchestras, selectedProgramId, onToggleProgram }) {
+function ProgramsTab({
+    programs,
+    orchestras,
+    selectedProgramId,
+    onToggleProgram,
+    adminOrchestraIds,
+}) {
     const sortedOrchestras = [...orchestras].sort((a, b) => a.id - b.id)
+
+    
 
     return (
         <div>
@@ -27,6 +35,7 @@ function ProgramsTab({ programs, orchestras, selectedProgramId, onToggleProgram 
                                             selectedProgramId === program.id ? null : program.id
                                         )
                                     }
+                                    canManage={adminOrchestraIds.includes(program.orchestra.id)}
                                 />
                             ))}
                         </div>
