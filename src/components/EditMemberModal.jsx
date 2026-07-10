@@ -1,4 +1,4 @@
-import { SECTION_ORDER } from '../constants/membership'
+import { SECTION_ORDER, SECTION_ORDER_LABELS } from '../constants/membership'
 
 function EditMemberModal({
     open,
@@ -26,8 +26,8 @@ function EditMemberModal({
                         disabled={isSaving}
                         className="rounded-lg border border-gray px-3 py-2 text-sm focus:outline-none disabled:opacity-60"
                     >
-                        <option value="admin">admin</option>
-                        <option value="member">member</option>
+                        <option value="admin">Admin</option>
+                        <option value="member">Member</option>
                     </select>
                 </label>
 
@@ -45,9 +45,9 @@ function EditMemberModal({
                         disabled={isSaving}
                         className="rounded-lg border border-gray px-3 py-2 text-sm focus:outline-none disabled:opacity-60"
                     >
-                        <option value="core">core</option>
-                        <option value="substitute">substitute</option>
-                        <option value="guest">guest</option>
+                        <option value="core">Core</option>
+                        <option value="substitute">Substitute</option>
+                        <option value="guest">Guest</option>
                     </select>
                 </label>
 
@@ -83,13 +83,21 @@ function EditMemberModal({
                     >
                         {SECTION_ORDER.map((section) => (
                             <option key={section} value={section}>
-                                {section}
+                                {SECTION_ORDER_LABELS[section]}
                             </option>
                         ))}
                     </select>
                 </label>
 
                 <div className="flex gap-2 mt-1">
+                    <button
+                        type="button"
+                        onClick={onClose}
+                        disabled={isSaving}
+                        className="flex-1 rounded-lg border border-gray text-sm font-medium py-2 hover:bg-card-gray transition-colors focus:outline-none disabled:opacity-60 cursor-pointer"
+                    >
+                        Cancel
+                    </button>
                     <button
                         type="button"
                         onClick={() => onSave(member)}
@@ -99,14 +107,7 @@ function EditMemberModal({
                         {isSaving ? 'Saving...' : 'Save'}
                     </button>
 
-                    <button
-                        type="button"
-                        onClick={onClose}
-                        disabled={isSaving}
-                        className="flex-1 rounded-lg border border-gray text-sm font-medium py-2 hover:bg-card-gray transition-colors focus:outline-none disabled:opacity-60 cursor-pointer"
-                    >
-                        Cancel
-                    </button>
+                    
                 </div>
             </div>
         </div>

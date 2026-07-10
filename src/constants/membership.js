@@ -18,6 +18,26 @@ export const SECTION_ORDER = [
     'other'
 ]
 
+export const SECTION_ORDER_LABELS = {
+    violin_1: 'Violin 1',
+    violin_2: 'Violin 2',
+    viola: 'Viola',
+    cello: 'Cello',
+    double_bass: 'Double Bass',
+    french_horn: 'French Horn',
+    trumpet: 'Trumpet',
+    trombone: 'Trombone',
+    tuba: 'Tuba',
+    flute: 'Flute',
+    oboe: 'Oboe',
+    clarinet: 'Clarinet',
+    bassoon: 'Bassoon',
+    percussion: 'Percussion',
+    mallet: 'Mallet',
+    vocal: 'Vocal',
+    other: 'Other'
+}
+
 export const MEMBER_TYPE_ORDER = [
     'core',
     'substitute',
