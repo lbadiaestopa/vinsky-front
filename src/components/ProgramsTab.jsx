@@ -1,12 +1,18 @@
 import ProgramCard from './ProgramCard'
 
-function ProgramsTab({ programs, orchestras, selectedProgramId, onToggleProgram }) {
+function ProgramsTab({
+    programs,
+    orchestras,
+    selectedProgramId,
+    onToggleProgram,
+    adminOrchestraIds,
+}) {
     const sortedOrchestras = [...orchestras].sort((a, b) => a.id - b.id)
+
+    
 
     return (
         <div>
-            <h2>Programs</h2>
-
             {sortedOrchestras.map((orchestra) => {
                 const orchestraPrograms = programs
                     .filter((p) => p.orchestra.id === orchestra.id)
@@ -15,21 +21,24 @@ function ProgramsTab({ programs, orchestras, selectedProgramId, onToggleProgram 
                 if (orchestraPrograms.length === 0) return null
 
                 return (
-                    <div key={orchestra.id} style={{ marginBottom: '24px' }}>
-                        <h3>{orchestra.name}</h3>
+                    <div key={orchestra.id} className="mb-6">
+                        <h3 className="text-base font-semibold mb-2">{orchestra.name}</h3>
 
-                        {orchestraPrograms.map((program) => (
-                            <ProgramCard
-                                key={program.id}
-                                program={program}
-                                isOpen={selectedProgramId === program.id}
-                                onToggle={() =>
-                                    onToggleProgram(
-                                        selectedProgramId === program.id ? null : program.id
-                                    )
-                                }
-                            />
-                        ))}
+                        <div className="flex flex-col gap-3">
+                            {orchestraPrograms.map((program) => (
+                                <ProgramCard
+                                    key={program.id}
+                                    program={program}
+                                    isOpen={selectedProgramId === program.id}
+                                    onToggle={() =>
+                                        onToggleProgram(
+                                            selectedProgramId === program.id ? null : program.id
+                                        )
+                                    }
+                                    canManage={adminOrchestraIds.includes(program.orchestra.id)}
+                                />
+                            ))}
+                        </div>
                     </div>
                 )
             })}

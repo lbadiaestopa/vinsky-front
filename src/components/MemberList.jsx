@@ -4,78 +4,28 @@ import {
     updateMembership,
     deleteMembership
 } from '../services/membershipService'
-
-const SECTION_ORDER = [
-    'violin_1', 'violin_2', 'viola', 'cello', 'double_bass',
-    'french_horn', 'trumpet', 'trombone', 'tuba', 'flute',
-    'oboe', 'clarinet', 'bassoon', 'percussion', 'mallet',
-    'vocal', 'other'
-]
-
-const MEMBER_TYPE_ORDER = ['core', 'substitute', 'guest']
+import EditMemberModal from './EditMemberModal'
+import { useMemberList } from '../hooks/useMemberList'
+import {
+    SECTION_ORDER,
+    MEMBER_TYPE_ORDER
+} from '../constants/membership'
 
 function MemberList({ orchestraId, refreshKey }) {
-    const [members, setMembers] = useState([])
-    const [loading, setLoading] = useState(true)
     const [editingMember, setEditingMember] = useState(null)
-    const [isSaving, setIsSaving] = useState(false)
-    const [error, setError] = useState(null)
 
-    useEffect(() => {
-        const fetchMembers = async () => {
-            setLoading(true)
-            try {
-                const data = await getOrchestraMemberships(orchestraId)
-                setMembers(data)
-            } catch (err) {
-                console.error('MemberList load error:', err)
-                setError('Failed to load members')
-            } finally {
-                setLoading(false)
-            }
-        }
+    const {
+        members,
+        loading,
+        isSaving,
+        error,
+        updateMember,
+        removeMember
+    } = useMemberList(orchestraId, refreshKey)
 
-        fetchMembers()
-    }, [orchestraId, refreshKey])
-
-    const handleUpdate = async (membership) => {
-        setIsSaving(true)
-        setError(null)
-
-        try {
-            const updated = await updateMembership(membership.id, {
-                role: membership.role,
-                member_type: membership.member_type,
-                instrument: membership.instrument,
-                section: membership.section
-            })
-
-            setMembers((prev) =>
-                prev.map((m) => (m.id === updated.id ? updated : m))
-            )
-        } catch (err) {
-            console.error('Update membership error:', err)
-            setError('Failed to update member')
-        } finally {
-            setIsSaving(false)
-        }
-    }
-
-    const handleRemove = async (membershipId) => {
-        setError(null)
-
-        try {
-            await deleteMembership(membershipId)
-            setMembers((prev) => prev.filter((m) => m.id !== membershipId))
-        } catch (err) {
-            console.error('Remove membership error:', err)
-            setError('Failed to remove member')
-        }
-    }
-
-    if (loading) return <p>Loading members...</p>
-    if (error) return <p style={{ color: 'red' }}>{error}</p>
-    if (members.length === 0) return <p>No members found</p>
+    if (loading) return <p className="text-sm">Loading members...</p>
+    if (error) return <p className="text-sm text-red">{error}</p>
+    if (members.length === 0) return <p className="text-sm">No members found</p>
 
     const grouped = members.reduce((acc, member) => {
         const section = member.section || 'other'
@@ -103,41 +53,45 @@ function MemberList({ orchestraId, refreshKey }) {
                 })
 
                 return (
-                    <div key={section} style={{ marginBottom: '1rem' }}>
-                        <h4>{section.replace('_', ' ').toUpperCase()}</h4>
+                    <div key={section} className="mb-4">
+                        <h4 className="text-sm font-semibold mb-2">{section.replace('_', ' ').toUpperCase()}</h4>
 
-                        <ul>
+                        <ul className="flex flex-col gap-1">
                             {sorted.map((m) => (
                                 <li
                                     key={m.id}
-                                    style={{
-                                        display: 'flex',
-                                        justifyContent: 'space-between',
-                                        alignItems: 'center',
-                                        gap: '1rem'
-                                    }}
+                                    className="flex justify-between items-center gap-4 bg-card-gray rounded-lg px-3 py-2"
                                 >
-                                    <span>
+                                    <span className="text-sm">
                                         {m.user.last_name}, {m.user.name}{' '}
-                                        <span style={{ fontSize: '0.8rem', opacity: 0.7 }}>
+                                        <span className="text-xs opacity-70">
                                             [{m.member_type}]
                                         </span>
                                     </span>
 
-                                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                    <div className="flex gap-1">
                                         <button
                                             type="button"
                                             onClick={() => setEditingMember({ ...m })}
+                                            className="rounded-full px-2 py-1 hover:bg-gray transition-colors focus:outline-none cursor-pointer flex items-center"
                                         >
-                                            Edit
+                                            <span className="material-symbols-outlined text-base!">edit</span>
                                         </button>
 
                                         <button
                                             type="button"
-                                            onClick={() => handleRemove(m.id)}
-                                            style={{ color: 'red' }}
+                                            onClick={() => {
+                                                const confirmed = window.confirm(
+                                                    `Remove ${m.user.name} ${m.user.last_name} from the orchestra?`
+                                                )
+
+                                                if (!confirmed) return
+
+                                                removeMember(m.id)
+                                            }}
+                                            className="rounded-full text-red px-2 py-1 hover:bg-gray transition-colors focus:outline-none cursor-pointer flex items-center"
                                         >
-                                            Remove
+                                            <span className="material-symbols-outlined text-base!">delete</span>
                                         </button>
                                     </div>
                                 </li>
@@ -147,91 +101,17 @@ function MemberList({ orchestraId, refreshKey }) {
                 )
             })}
 
-            {editingMember && (
-                <div style={{
-                    position: 'fixed',
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    background: 'rgba(0,0,0,0.4)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center'
-                }}>
-                    <div style={{
-                        background: 'white',
-                        padding: '1rem',
-                        width: '300px',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: '0.5rem'
-                    }}>
-                        <h3>Edit member</h3>
-
-                        <select
-                            value={editingMember.role}
-                            onChange={(e) =>
-                                setEditingMember({ ...editingMember, role: e.target.value })
-                            }
-                            disabled={isSaving}
-                        >
-                            <option value="admin">admin</option>
-                            <option value="member">member</option>
-                        </select>
-
-                        <select
-                            value={editingMember.member_type}
-                            onChange={(e) =>
-                                setEditingMember({ ...editingMember, member_type: e.target.value })
-                            }
-                            disabled={isSaving}
-                        >
-                            <option value="core">core</option>
-                            <option value="substitute">substitute</option>
-                            <option value="guest">guest</option>
-                        </select>
-
-                        <input
-                            value={editingMember.instrument}
-                            onChange={(e) =>
-                                setEditingMember({ ...editingMember, instrument: e.target.value })
-                            }
-                            disabled={isSaving}
-                        />
-
-                        <select
-                            value={editingMember.section}
-                            onChange={(e) =>
-                                setEditingMember({ ...editingMember, section: e.target.value })
-                            }
-                            disabled={isSaving}
-                        >
-                            {SECTION_ORDER.map((s) => (
-                                <option key={s} value={s}>
-                                    {s}
-                                </option>
-                            ))}
-                        </select>
-
-                        <div style={{ display: 'flex', gap: '0.5rem' }}>
-                            <button
-                                onClick={async () => {
-                                    await handleUpdate(editingMember)
-                                    setEditingMember(null)
-                                }}
-                                disabled={isSaving}
-                            >
-                                {isSaving ? 'Saving...' : 'Save'}
-                            </button>
-
-                            <button onClick={() => setEditingMember(null)} disabled={isSaving}>
-                                Cancel
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
+            <EditMemberModal
+                open={!!editingMember}
+                member={editingMember}
+                setMember={setEditingMember}
+                isSaving={isSaving}
+                onSave={async (member) => {
+                    await updateMember(member)
+                    setEditingMember(null)
+                }}
+                onClose={() => setEditingMember(null)}
+            />
         </div>
     )
 }

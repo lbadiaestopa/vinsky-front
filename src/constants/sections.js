@@ -1,0 +1,19 @@
+export const SECTION_OPTIONS = [
+    'violin_1',
+    'violin_2',
+    'viola',
+    'cello',
+    'double_bass',
+    'french_horn',
+    'trumpet',
+    'trombone',
+    'tuba',
+    'flute',
+    'oboe',
+    'clarinet',
+    'bassoon',
+    'percussion',
+    'mallet',
+    'vocal',
+    'other'
+]

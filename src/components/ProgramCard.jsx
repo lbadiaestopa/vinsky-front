@@ -1,283 +1,82 @@
-import { useState, useEffect, useRef } from 'react'
-import { getScores, createScore, downloadScore, deleteScore } from '../services/scoreService'
-import { getEvents, createEvent } from '../services/eventService'
-import { updateProgram, deleteProgram } from '../services/programService'
 import EventCard from './EventCard'
-import { toDatetimeLocal, fromDatetimeLocal } from '../utils/dates'
-
-const EVENT_TYPES = ['rehearsal', 'concert', 'soundcheck']
+import { useState, useEffect, useRef } from 'react'
+import { useProgramCard } from '../hooks/useProgramCard'
+import AddEventModal from './AddEventModal'
+import EditProgramModal from './EditProgramModal'
+import { EVENT_TYPES_ORDER } from '../constants/eventTypes'
 
 function ProgramCard({ program, isOpen, onToggle, canManage, onProgramUpdated, onProgramDeleted }) {
-    const [scores, setScores] = useState([])
-    const [loadingScores, setLoadingScores] = useState(false)
-    const [isUploading, setIsUploading] = useState(false)
-    const [uploadError, setUploadError] = useState(null)
-    const fileInputRef = useRef(null)
+    const {
+        scores, loadingScores, isUploading, uploadError, fileInputRef,
+        handleFileSelected, handleDownload, downloadingId, handleDeleteScore, deletingScoreId,
+        sortedEvents, loadingEvents, handleEventUpdated, handleEventDeleted,
+        menuOpen, toggleMenu, closeMenu,
+        activeModal, openModal, closeModal,
+        eventForm, setEventForm, isSavingEvent, eventError, handleCreateEvent,
+        detailsForm, setDetailsForm, isSavingDetails, detailsError, handleUpdateDetails,
+        isDeleting, handleDelete
+    } = useProgramCard(program, isOpen, onProgramUpdated, onProgramDeleted)
 
-    const [events, setEvents] = useState([])
-    const [loadingEvents, setLoadingEvents] = useState(false)
-
-    const [menuOpen, setMenuOpen] = useState(false)
-    const [activeModal, setActiveModal] = useState(null) // 'addEvent' | 'editDetails' | null
-
-    const [eventForm, setEventForm] = useState({
-        repertoire: '', type: 'rehearsal', location: '', start_date: '', end_date: ''
-    })
-    const [isSavingEvent, setIsSavingEvent] = useState(false)
-    const [eventError, setEventError] = useState(null)
-
-    const [detailsForm, setDetailsForm] = useState({
-        name: program.name, start_date: program.start_date, end_date: program.end_date
-    })
-    const [isSavingDetails, setIsSavingDetails] = useState(false)
-    const [detailsError, setDetailsError] = useState(null)
-
-    const [isDeleting, setIsDeleting] = useState(false)
-
-    const [downloadingId, setDownloadingId] = useState(null)
-
-    const [deletingScoreId, setDeletingScoreId] = useState(null)
+    const menuRef = useRef(null)
 
     useEffect(() => {
-        if (!isOpen) return
+        if (!menuOpen) return
 
-        const fetchScores = async () => {
-            setLoadingScores(true)
-            const data = await getScores(program.id)
-            setScores(data)
-            setLoadingScores(false)
-        }
-
-        const fetchEvents = async () => {
-            setLoadingEvents(true)
-            try {
-                const data = await getEvents(program.id)
-                setEvents(data)
-            } catch (error) {
-                console.error('ProgramCard events error:', error)
-                setEvents([])
-            } finally {
-                setLoadingEvents(false)
+        function handleClickOutside(event) {
+            if (menuRef.current && !menuRef.current.contains(event.target)) {
+                closeMenu()
             }
         }
 
-        fetchScores()
-        fetchEvents()
-    }, [isOpen, program.id])
+        document.addEventListener('mousedown', handleClickOutside)
 
-    const sortedEvents = [...events].sort(
-        (a, b) => new Date(a.start_date) - new Date(b.start_date)
-    )
-
-    const openModal = (modal) => {
-        setMenuOpen(false)
-        setEventError(null)
-        setDetailsError(null)
-
-        if (modal === 'editDetails') {
-            setDetailsForm({
-                name: program.name,
-                start_date: program.start_date,
-                end_date: program.end_date
-            })
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside)
         }
-
-        if (modal === 'addEvent') {
-            setEventForm({ repertoire: '', type: 'rehearsal', location: '', start_date: '', end_date: '' })
-        }
-
-        setActiveModal(modal)
-    }
-
-    const handleCreateEvent = async () => {
-        setIsSavingEvent(true)
-        setEventError(null)
-
-        const handleEventUpdated = (updated) => {
-            setEvents((prev) => prev.map((e) => (e.id === updated.id ? updated : e)))
-        }
-
-        const handleEventDeleted = (eventId) => {
-            setEvents((prev) => prev.filter((e) => e.id !== eventId))
-        }
-
-        try {
-            const created = await createEvent(program.id, {
-                repertoire: eventForm.repertoire,
-                type: eventForm.type,
-                location: eventForm.location,
-                start_date: fromDatetimeLocal(eventForm.start_date),
-                end_date: fromDatetimeLocal(eventForm.end_date)
-            })
-
-            setEvents((prev) => [...prev, created])
-            setActiveModal(null)
-        } catch (error) {
-            console.error('Create event error:', error)
-            setEventError(error?.response?.data?.message ?? 'Failed to create event')
-        } finally {
-            setIsSavingEvent(false)
-        }
-    }
-
-    const handleUpdateDetails = async () => {
-        setIsSavingDetails(true)
-        setDetailsError(null)
-
-        try {
-            const updated = await updateProgram(program.id, {
-                name: detailsForm.name,
-                start_date: detailsForm.start_date,
-                end_date: detailsForm.end_date
-            })
-
-            onProgramUpdated(updated)
-            setActiveModal(null)
-        } catch (error) {
-            console.error('Update program error:', error)
-            setDetailsError(error?.response?.data?.message ?? 'Failed to update program')
-        } finally {
-            setIsSavingDetails(false)
-        }
-    }
-
-    const MAX_SCORE_SIZE = 10 * 1024 * 1024 // 10MB
-
-    const handleFileSelected = async (e) => {
-        const file = e.target.files[0]
-        e.target.value = ''
-
-        if (!file) return
-
-        setUploadError(null)
-
-        if (file.type !== 'application/pdf') {
-            setUploadError('Only PDF files are allowed')
-            return
-        }
-
-        if (file.size > MAX_SCORE_SIZE) {
-            setUploadError('File must be under 10MB')
-            return
-        }
-
-        setIsUploading(true)
-        try {
-            const created = await createScore(program.id, file)
-            setScores((prev) => [...prev, created])
-        } catch (error) {
-            console.error('Upload score error:', error)
-            setUploadError(error?.response?.data?.message ?? 'Failed to upload score')
-        } finally {
-            setIsUploading(false)
-        }
-    }
-
-    const handleDownload = async (score) => {
-        setDownloadingId(score.id)
-        try {
-            await downloadScore(program.id, score.id, score.original_name)
-        } catch (error) {
-            console.error('Download score error:', error)
-            alert('Failed to download score')
-        } finally {
-            setDownloadingId(null)
-        }
-    }
-
-    const handleDeleteScore = async (score) => {
-        const confirmed = window.confirm(
-            `Delete "${score.original_name}"? This action cannot be undone.`
-        )
-        if (!confirmed) return
-
-        setDeletingScoreId(score.id)
-        try {
-            await deleteScore(program.id, score.id)
-            setScores((prev) => prev.filter((s) => s.id !== score.id))
-        } catch (error) {
-            console.error('Delete score error:', error)
-            alert('Failed to delete score')
-        } finally {
-            setDeletingScoreId(null)
-        }
-    }
-
-    const handleDelete = async () => {
-        setMenuOpen(false)
-
-        const confirmed = window.confirm(
-            `Delete "${program.name}"? This will also delete all its events and scores. This action cannot be undone.`
-        )
-        if (!confirmed) return
-
-        setIsDeleting(true)
-        try {
-            await deleteProgram(program.id)
-            onProgramDeleted(program.id)
-        } catch (error) {
-            console.error('Delete program error:', error)
-            alert('Failed to delete program')
-            setIsDeleting(false)
-        }
-    }
-
-    const handleEventUpdated = (updated) => {
-        setEvents((prev) => prev.map((e) => (e.id === updated.id ? updated : e)))
-    }
-
-    const handleEventDeleted = (eventId) => {
-        setEvents((prev) => prev.filter((e) => e.id !== eventId))
-    }
+    }, [menuOpen, closeMenu])
 
     return (
-        <div style={{ border: '1px solid #ddd', padding: '12px', marginBottom: '12px', position: 'relative', opacity: isDeleting ? 0.5 : 1 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                <div onClick={onToggle} style={{ cursor: 'pointer', flex: 1 }}>
-                    <h3 style={{ margin: 0 }}>{program.name}</h3>
-                    <p style={{ margin: '4px 0', fontSize: '0.9rem', opacity: 0.85 }}>
-                        {new Date(program.start_date).toLocaleDateString(undefined, { day: '2-digit', month: 'short', year: 'numeric' })}
-                        {' → '}
-                        {new Date(program.end_date).toLocaleDateString(undefined, { day: '2-digit', month: 'short', year: 'numeric' })}
+        <div className={`border border-gray rounded-lg p-4 mb-3 relative ${isDeleting ? 'opacity-50' : ''}`}>
+            <div className="flex justify-between items-start">
+                <div onClick={onToggle} className="cursor-pointer flex-1">
+                    <h3 className="text-base font-semibold">{program.name}</h3>
+                    <p className="text-sm opacity-85 my-1">
+                        {new Date(program.start_date).toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' })}
+                        {' - '}
+                        {new Date(program.end_date).toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' })}
                     </p>
                 </div>
 
                 {canManage && (
-                    <div style={{ position: 'relative' }}>
+                    <div
+                        className="relative"
+                        ref={menuRef}
+                    >
                         <button
                             type="button"
                             onClick={(e) => {
                                 e.stopPropagation()
-                                setMenuOpen((prev) => !prev)
+                                toggleMenu()
                             }}
-                            style={{ background: 'none', border: 'none', fontSize: '1.2rem', cursor: 'pointer', padding: '0 8px' }}
+                            className="bg-transparent border-none text-lg cursor-pointer px-2 focus:outline-none"
                         >
-                            ⋮
+                            <span className="material-symbols-outlined text-xl! rounded-full hover:bg-gray transition-colors px-2 py-1">more_vert</span>
                         </button>
 
                         {menuOpen && (
-                            <div
-                                style={{
-                                    position: 'absolute',
-                                    right: 0,
-                                    top: '100%',
-                                    background: 'white',
-                                    border: '1px solid #ddd',
-                                    boxShadow: '0 2px 6px rgba(0,0,0,0.15)',
-                                    zIndex: 10,
-                                    minWidth: '140px'
-                                }}
-                            >
-                                <button type="button" onClick={(e) => { e.stopPropagation(); openModal('addEvent') }}
-                                    style={{ display: 'block', width: '100%', textAlign: 'left', padding: '8px 12px', border: 'none', background: 'none', cursor: 'pointer' }}>
-                                    Add event
-                                </button>
-                                <button type="button" onClick={(e) => { e.stopPropagation(); openModal('editDetails') }}
-                                    style={{ display: 'block', width: '100%', textAlign: 'left', padding: '8px 12px', border: 'none', background: 'none', cursor: 'pointer' }}>
+                            <div className="absolute right-0 top-full bg-white border border-gray rounded-lg shadow-md z-10 min-w-35">
+                                <button
+                                    type="button"
+                                    onClick={(e) => { e.stopPropagation(); openModal('editDetails') }}
+                                    className="block w-full text-left text-sm px-3 py-2 hover:bg-card-gray transition-colors focus:outline-none cursor-pointer"
+                                >
                                     Edit details
                                 </button>
-                                <button type="button" onClick={(e) => { e.stopPropagation(); handleDelete() }}
-                                    style={{ display: 'block', width: '100%', textAlign: 'left', padding: '8px 12px', border: 'none', background: 'none', cursor: 'pointer', color: 'red' }}>
+                                <button
+                                    type="button"
+                                    onClick={(e) => { e.stopPropagation(); handleDelete() }}
+                                    className="block w-full text-left text-sm px-3 py-2 text-red hover:bg-card-gray transition-colors focus:outline-none cursor-pointer"
+                                >
                                     Delete program
                                 </button>
                             </div>
@@ -287,206 +86,119 @@ function ProgramCard({ program, isOpen, onToggle, canManage, onProgramUpdated, o
             </div>
 
             {isOpen && (
-                <div style={{ marginTop: '12px', borderTop: '1px solid #eee', paddingTop: '12px' }}>
-                    <h4>Events</h4>
+                <div className="mt-3 border-t border-gray pt-3">
+                    <div className="flex justify-between items-center mb-2">
+                        <h4 className="text-sm font-semibold">Events</h4>
 
-                    {loadingEvents && <p>Loading...</p>}
-                    {!loadingEvents && sortedEvents.length === 0 && <p>No events scheduled</p>}
+                        {canManage && (
+                            <button
+                                type="button"
+                                onClick={() => openModal('addEvent')}
+                                className="rounded-lg border border-gray hover:bg-card-gray transition-colors text-sm font-medium pl-2 pr-3 py-1.5 cursor-pointer focus:outline-none flex items-center gap-1"
+                            >
+                                <span className="material-symbols-outlined text-xl!">add</span>
+                                Add event
+                            </button>
+                        )}
+                    </div>
+
+                    {!loadingEvents && sortedEvents.length === 0 && <p className="text-sm">No events scheduled</p>}
                     {!loadingEvents && sortedEvents.map((event) => (
                         <EventCard
                             key={event.id}
                             event={event}
                             programId={program.id}
-                            canManage={true}
+                            canManage={canManage}
                             onEventUpdated={handleEventUpdated}
                             onEventDeleted={handleEventDeleted}
                         />
                     ))}
 
-                    <h4>Scores</h4>
+                    <hr className="border-gray mb-4 mt-4" />
+
+                    <div className="flex justify-between items-center mt-4 mb-2">
+                        <h4 className="text-sm font-semibold ms-1">Scores</h4>
+
+                        {canManage && (
+                            <button
+                                type="button"
+                                onClick={() => fileInputRef.current?.click()}
+                                disabled={isUploading}
+                                className="rounded-lg border border-gray hover:bg-card-gray transition-colors text-sm font-medium pl-2 pr-3 py-1.5 cursor-pointer focus:outline-none flex items-center gap-1"
+                            >
+                                <span className="material-symbols-outlined text-xl!">add</span>
+                                {isUploading ? 'Uploading...' : 'Add score'}
+                            </button>)}
+
+                    </div>
 
                     <input
+                        ref={fileInputRef}
                         type="file"
                         accept="application/pdf"
-                        ref={fileInputRef}
                         onChange={handleFileSelected}
-                        style={{ display: 'none' }}
+                        className="hidden"
                     />
 
-                    <button
-                        type="button"
-                        onClick={() => fileInputRef.current?.click()}
-                        disabled={isUploading}
-                        style={{ marginBottom: '8px' }}
-                    >
-                        {isUploading ? 'Uploading...' : 'Add score'}
-                    </button>
+                    {uploadError && <p className="text-sm text-red">{uploadError}</p>}
 
-                    {uploadError && <p style={{ color: 'red' }}>{uploadError}</p>}
-
-                    {loadingScores && <p>Loading...</p>}
-                    {!loadingScores && scores.length === 0 && <p>No scores available</p>}
+                    {loadingScores && <p className="text-sm">Loading...</p>}
+                    {!loadingScores && scores.length === 0 && <p className="text-sm">No scores available</p>}
                     {!loadingScores && scores.length > 0 && (
-                        <ul>
+                        <div className="grid grid-cols-2 gap-2">
                             {scores.map((score) => (
-                                <li key={score.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px' }}>
-                                    <span>{score.original_name}</span>
-                                    <div style={{ display: 'flex', gap: '4px' }}>
+                                <div key={score.id} className="bg-card-gray rounded-lg p-3 flex justify-between items-center gap-2">
+                                    <span className="text-sm truncate">{score.original_name}</span>
+                                    <div className="flex gap-1 shrink-0">
                                         <button
                                             type="button"
                                             onClick={() => handleDownload(score)}
                                             disabled={downloadingId === score.id}
+                                            className="px-2 py-1 hover:bg-gray rounded-full transition-colors focus:outline-none cursor-pointer disabled:opacity-60 flex items-center gap-1"
                                         >
-                                            {downloadingId === score.id ? 'Downloading...' : 'Download'}
+                                            <span className="material-symbols-outlined text-lg!">
+                                                {downloadingId === score.id ? 'progress_activity' : 'download'}
+                                            </span>
                                         </button>
                                         <button
                                             type="button"
                                             onClick={() => handleDeleteScore(score)}
                                             disabled={deletingScoreId === score.id}
-                                            style={{ color: 'red' }}
+                                            className="rounded-full text-sm px-2 py-1 text-red hover:bg-gray transition-colors focus:outline-none cursor-pointer disabled:opacity-60"
                                         >
-                                            {deletingScoreId === score.id ? 'Deleting...' : 'Delete'}
+                                            <span className="material-symbols-outlined text-lg!">
+                                                {deletingScoreId === score.id ? 'progress_activity' : 'delete'}
+                                            </span>
                                         </button>
                                     </div>
-                                </li>
+                                </div>
                             ))}
-                        </ul>
+                        </div>
                     )}
                 </div>
             )}
 
-            {/* MODAL: Add event */}
-            {activeModal === 'addEvent' && (
-                <div style={modalOverlayStyle}>
-                    <div style={modalBoxStyle}>
-                        <h3>Add event</h3>
+            <AddEventModal
+                open={activeModal === 'addEvent'}
+                form={eventForm}
+                setForm={setEventForm}
+                isSaving={isSavingEvent}
+                error={eventError}
+                onSave={handleCreateEvent}
+                onClose={closeModal}
+            />
 
-                        <label>
-                            Repertoire
-                            <input
-                                value={eventForm.repertoire}
-                                onChange={(e) => setEventForm({ ...eventForm, repertoire: e.target.value })}
-                                disabled={isSavingEvent}
-                            />
-                        </label>
-
-                        <label>
-                            Type
-                            <select
-                                value={eventForm.type}
-                                onChange={(e) => setEventForm({ ...eventForm, type: e.target.value })}
-                                disabled={isSavingEvent}
-                            >
-                                {EVENT_TYPES.map((t) => (
-                                    <option key={t} value={t}>{t}</option>
-                                ))}
-                            </select>
-                        </label>
-
-                        <label>
-                            Location
-                            <input
-                                value={eventForm.location}
-                                onChange={(e) => setEventForm({ ...eventForm, location: e.target.value })}
-                                disabled={isSavingEvent}
-                            />
-                        </label>
-
-                        <label>
-                            Start
-                            <input
-                                type="datetime-local"
-                                value={eventForm.start_date}
-                                onChange={(e) => setEventForm({ ...eventForm, start_date: e.target.value })}
-                                disabled={isSavingEvent}
-                            />
-                        </label>
-
-                        <label>
-                            End
-                            <input
-                                type="datetime-local"
-                                value={eventForm.end_date}
-                                onChange={(e) => setEventForm({ ...eventForm, end_date: e.target.value })}
-                                disabled={isSavingEvent}
-                            />
-                        </label>
-
-                        {eventError && <p style={{ color: 'red' }}>{eventError}</p>}
-
-                        <div style={{ display: 'flex', gap: '0.5rem' }}>
-                            <button onClick={handleCreateEvent} disabled={isSavingEvent}>
-                                {isSavingEvent ? 'Saving...' : 'Save'}
-                            </button>
-                            <button onClick={() => setActiveModal(null)} disabled={isSavingEvent}>
-                                Cancel
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {/* MODAL: Edit details */}
-            {activeModal === 'editDetails' && (
-                <div style={modalOverlayStyle}>
-                    <div style={modalBoxStyle}>
-                        <h3>Edit details</h3>
-
-                        <label>
-                            Name
-                            <input
-                                value={detailsForm.name}
-                                onChange={(e) => setDetailsForm({ ...detailsForm, name: e.target.value })}
-                                disabled={isSavingDetails}
-                            />
-                        </label>
-
-                        <label>
-                            Start date
-                            <input
-                                type="date"
-                                value={detailsForm.start_date}
-                                onChange={(e) => setDetailsForm({ ...detailsForm, start_date: e.target.value })}
-                                disabled={isSavingDetails}
-                            />
-                        </label>
-
-                        <label>
-                            End date
-                            <input
-                                type="date"
-                                value={detailsForm.end_date}
-                                onChange={(e) => setDetailsForm({ ...detailsForm, end_date: e.target.value })}
-                                disabled={isSavingDetails}
-                            />
-                        </label>
-
-                        {detailsError && <p style={{ color: 'red' }}>{detailsError}</p>}
-
-                        <div style={{ display: 'flex', gap: '0.5rem' }}>
-                            <button onClick={handleUpdateDetails} disabled={isSavingDetails}>
-                                {isSavingDetails ? 'Saving...' : 'Save'}
-                            </button>
-                            <button onClick={() => setActiveModal(null)} disabled={isSavingDetails}>
-                                Cancel
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
+            <EditProgramModal
+                open={activeModal === 'editDetails'}
+                form={detailsForm}
+                setForm={setDetailsForm}
+                isSaving={isSavingDetails}
+                error={detailsError}
+                onSave={handleUpdateDetails}
+                onClose={closeModal}
+            />
         </div>
     )
-}
-
-const modalOverlayStyle = {
-    position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-    background: 'rgba(0,0,0,0.4)', display: 'flex',
-    alignItems: 'center', justifyContent: 'center', zIndex: 100
-}
-
-const modalBoxStyle = {
-    background: 'white', padding: '1rem', width: '320px',
-    display: 'flex', flexDirection: 'column', gap: '0.5rem'
 }
 
 export default ProgramCard

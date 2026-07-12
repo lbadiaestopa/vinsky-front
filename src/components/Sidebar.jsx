@@ -1,6 +1,5 @@
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
-import { useNavigate } from 'react-router-dom'
 import { useEffect, useState } from 'react'
 import { getMe } from '../services/userService'
 import { createOrchestra } from '../services/orchestraService'
@@ -30,6 +29,8 @@ function Sidebar() {
     const adminOrchestras = orchestras.filter((o) =>
         adminOrchestraIds.includes(o.id)
     )
+
+    const hasAdminOrchestras = adminOrchestras.length > 0
 
     const fetchData = async () => {
         try {
@@ -85,113 +86,143 @@ function Sidebar() {
     }
 
     return (
-        <aside style={{
-            width: '250px',
-            padding: '1rem',
-            borderRight: '1px solid #ddd'
-        }}>
+        <>
+            <aside className="w-80 min-h-screen bg-white border-r border-gray pb-4 pt-2 pl-4 pr-4 flex flex-col sticky top-0 h-screen">
 
-            <nav>
-                <ul style={{ listStyle: 'none', padding: 0 }}>
-                    <li>
-                        <Link to="/">Home</Link>
-                    </li>
-                </ul>
-            </nav>
-
-            <hr />
-
-            <div>
-                <h4>My Orchestras</h4>
-
-                {adminOrchestras.length > 0 && (
-                    <ul style={{ listStyle: 'none', padding: 0 }}>
-                        {adminOrchestras.map((orch) => (
-                            <li key={orch.id}>
-                                <Link to={`/orchestras/${orch.id}`}>
-                                    {orch.name}
-                                </Link>
-                            </li>
-                        ))}
+                <nav>
+                    <ul className="list-none p-0">
+                        <li>
+                            <Link
+                                to="/"
+                                className="block text-sm w-full text-left rounded-lg py-2 px-4 hover:bg-card-gray transition-all"
+                            >
+                                Home
+                            </Link>
+                        </li>
                     </ul>
+                </nav>
+
+                <hr className="border-gray mb-4 mt-2 -mr-4 -ml-8" />
+
+                <div className="flex-1 min-h-0 flex flex-col">
+                    {hasAdminOrchestras && (
+                        <>
+                            <h4 className="text-sm font-semibold mb-2 px-4">
+                                My Orchestras
+                            </h4>
+
+                            <ul className="flex-1 min-h-0 overflow-y-auto list-none p-0 flex flex-col gap-1">
+                                {adminOrchestras.map((orch) => (
+                                    <li key={orch.id}>
+                                        <Link
+                                            to={`/orchestras/${orch.id}`}
+                                            className="block text-sm rounded-lg px-4 py-2 hover:bg-card-gray transition-all"
+                                        >
+                                            {orch.name}
+                                        </Link>
+                                    </li>
+                                ))}
+                            </ul>
+                        </>
+                    )}
+                </div>
+
+                <hr className="border-gray my-2 -mr-4 -ml-8" />
+                
+                <button
+                    type="button"
+                    onClick={openCreateModal}
+                    className="text-sm rounded-lg py-1.5 px-3 w-full text-left hover:cursor-pointer hover:px-4 hover:bg-card-gray transition-all focus:outline-none flex items-center gap-1"
+                >
+                    <span className="material-symbols-outlined text-xl!">
+                        add
+                    </span>
+                    Add orchestra
+                </button>
+
+                <hr className="border-gray my-2 -mr-4 -ml-8" />
+
+                {user && (
+                    <Link
+                        to="/profile"
+                        className="block no-underline rounded-lg py-2 px-4 text-black hover:bg-card-gray transition-all"
+                    >
+                        <strong className="text-sm font-semibold">
+                            {user.name} {user.last_name}
+                        </strong>
+                        <div className="text-sm opacity-75">
+                            {user.email}
+                        </div>
+                    </Link>
                 )}
 
-                <button type="button" onClick={openCreateModal} style={{ marginTop: '8px' }}>
-                    + Add orchestra
-                </button>
-            </div>
-
-            <hr />
-
-            {user && (
-                <Link
-                    to="/profile"
-                    style={{
-                        display: 'block',
-                        marginTop: '1rem',
-                        marginBottom: '1rem',
-                        textDecoration: 'none',
-                        color: 'inherit'
-                    }}
-                >
-                    <strong>{user.name} {user.last_name}</strong>
-                    <div style={{ fontSize: '0.85rem', opacity: 0.75 }}>
-                        {user.email}
-                    </div>
-                </Link>
-            )}
-
-            {token && (
-                <button onClick={handleLogout}>
-                    Logout
-                </button>
-            )}
+                {token && (
+                    <button
+                        onClick={handleLogout}
+                        className="text-sm rounded-lg py-1.5 px-3 w-full text-left hover:cursor-pointer hover:px-4 hover:bg-card-gray transition-all focus:outline-none flex items-center gap-1"
+                    >
+                        <span className="material-symbols-outlined text-base!">
+                            logout
+                        </span>
+                        Logout
+                    </button>
+                )}
+            </aside>
 
             {showCreateModal && (
-                <div style={{
-                    position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-                    background: 'rgba(0,0,0,0.4)', display: 'flex',
-                    alignItems: 'center', justifyContent: 'center', zIndex: 100
-                }}>
-                    <div style={{
-                        background: 'white', padding: '1rem', width: '320px',
-                        display: 'flex', flexDirection: 'column', gap: '0.5rem'
-                    }}>
-                        <h3>Create orchestra</h3>
+                <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-100 px-4">
+                    <div className="bg-white rounded-lg p-4 w-full max-w-sm flex flex-col gap-3 border border-gray">
+                        <h3 className="text-base font-semibold ms-1">
+                            Create orchestra
+                        </h3>
 
-                        <label>
-                            Name
+                        <label className="flex flex-col gap-1">
+                            <span className="text-sm ms-1">Name</span>
                             <input
                                 value={form.name}
-                                onChange={(e) => setForm({ ...form, name: e.target.value })}
+                                onChange={(e) =>
+                                    setForm({ ...form, name: e.target.value })
+                                }
                                 disabled={isSaving}
+                                className="rounded-lg border border-gray px-3 py-2 text-sm focus:outline-none"
                             />
                         </label>
 
-                        <label>
-                            Location
+                        <label className="flex flex-col gap-1">
+                            <span className="text-sm ms-1">Location</span>
                             <input
                                 value={form.location}
-                                onChange={(e) => setForm({ ...form, location: e.target.value })}
+                                onChange={(e) =>
+                                    setForm({ ...form, location: e.target.value })
+                                }
                                 disabled={isSaving}
+                                className="rounded-lg border border-gray px-3 py-2 text-sm focus:outline-none"
                             />
                         </label>
 
-                        {error && <p style={{ color: 'red' }}>{error}</p>}
+                        {error && <p className="text-sm text-red">{error}</p>}
 
-                        <div style={{ display: 'flex', gap: '0.5rem' }}>
-                            <button onClick={handleCreate} disabled={isSaving}>
-                                {isSaving ? 'Saving...' : 'Create'}
-                            </button>
-                            <button onClick={() => setShowCreateModal(false)} disabled={isSaving}>
+                        <div className="flex gap-2 mt-1">
+                            <button
+                                onClick={() => setShowCreateModal(false)}
+                                disabled={isSaving}
+                                className="flex-1 rounded-lg text-sm py-2 border border-gray hover:cursor-pointer focus:outline-none"
+                            >
                                 Cancel
+                            </button>
+
+                            <button
+                                onClick={handleCreate}
+                                disabled={isSaving}
+                                className="flex-1 rounded-lg border border-black bg-black text-white text-sm py-2 hover:cursor-pointer focus:outline-none"
+                            >
+                                {isSaving ? 'Saving...' : 'Create'}
                             </button>
                         </div>
                     </div>
                 </div>
             )}
-
-        </aside>
+        </>
     )
 }
 

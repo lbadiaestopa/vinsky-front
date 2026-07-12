@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import EventCard from './EventCard'
-import { EVENT_TYPES_ORDER, EVENT_TYPE_LABELS } from '../utils/eventTypes'
+import { EVENT_TYPES_ORDER, EVENT_TYPE_LABELS } from '../constants/eventTypes'
 
 function NextEventsTab({ events, programsData, orchestrasData, onProgramClick }) {
     const [orchestraFilter, setOrchestraFilter] = useState('')
@@ -36,17 +36,16 @@ function NextEventsTab({ events, programsData, orchestrasData, onProgramClick })
 
     return (
         <div>
-            <h2>Next events</h2>
-
-            <div style={{ display: 'flex', gap: '12px', marginBottom: '16px' }}>
-                <label>
-                    Orchestra:
+            <div className="grid grid-cols-3 gap-3 mb-6">
+                <label className="flex flex-col gap-1">
+                    <span className="text-sm font-medium ms-1">Orchestra</span>
                     <select
                         value={orchestraFilter}
                         onChange={(e) => {
                             setOrchestraFilter(e.target.value)
                             setProgramFilter('')
                         }}
+                        className="rounded-lg border border-gray px-3 py-2 text-sm focus:outline-none"
                     >
                         <option value="">All</option>
                         {orchestrasData.map((o) => (
@@ -57,11 +56,12 @@ function NextEventsTab({ events, programsData, orchestrasData, onProgramClick })
                     </select>
                 </label>
 
-                <label>
-                    Program:
+                <label className="flex flex-col gap-1">
+                    <span className="text-sm font-medium ms-1">Program</span>
                     <select
                         value={programFilter}
                         onChange={(e) => setProgramFilter(e.target.value)}
+                        className="rounded-lg border border-gray px-3 py-2 text-sm focus:outline-none"
                     >
                         <option value="">All</option>
                         {availablePrograms.map((p) => (
@@ -72,15 +72,16 @@ function NextEventsTab({ events, programsData, orchestrasData, onProgramClick })
                     </select>
                 </label>
 
-                <label>
-                    Type:
+                <label className="flex flex-col gap-1">
+                    <span className="text-sm font-medium ms-1">Type</span>
                     <select
                         value={typeFilter}
                         onChange={(e) => setTypeFilter(e.target.value)}
+                        className="rounded-lg border border-gray px-3 py-2 text-sm capitalize focus:outline-none"
                     >
                         <option value="">All</option>
                         {EVENT_TYPES_ORDER.map((type) => (
-                            <option key={type} value={type} style={{ textTransform: 'capitalize' }}>
+                            <option key={type} value={type} className="capitalize">
                                 {EVENT_TYPE_LABELS[type]}
                             </option>
                         ))}
@@ -88,24 +89,26 @@ function NextEventsTab({ events, programsData, orchestrasData, onProgramClick })
                 </label>
             </div>
 
-            {filteredEvents.length === 0 && <p>No upcoming events.</p>}
+            {filteredEvents.length === 0 && <p className="text-sm">No upcoming events.</p>}
 
-            {filteredEvents.map((event) => {
-                const program = programsData.find((p) => p.id === event.program_id)
-                const orchestra = program
-                    ? orchestrasData.find((o) => o.id === program.orchestra.id)
-                    : null
+            <div className="flex flex-col gap-3">
+                {filteredEvents.map((event) => {
+                    const program = programsData.find((p) => p.id === event.program_id)
+                    const orchestra = program
+                        ? orchestrasData.find((o) => o.id === program.orchestra.id)
+                        : null
 
-                return (
-                    <EventCard
-                        key={event.id}
-                        event={event}
-                        program={program}
-                        orchestra={orchestra}
-                        onProgramClick={onProgramClick}
-                    />
-                )
-            })}
+                    return (
+                        <EventCard
+                            key={event.id}
+                            event={event}
+                            program={program}
+                            orchestra={orchestra}
+                            onProgramClick={onProgramClick}
+                        />
+                    )
+                })}
+            </div>
         </div>
     )
 }

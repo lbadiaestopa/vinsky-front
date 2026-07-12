@@ -6,6 +6,12 @@ import { updateOrchestra, deleteOrchestra } from '../services/orchestraService'
 import ProgramCard from '../components/ProgramCard'
 import MemberList from '../components/MemberList'
 import { createMembership } from '../services/membershipService'
+import CreateProgramModal from '../components/CreateProgramModal'
+import AddMemberModal from '../components/AddMemberModal'
+import ProgramList from '../components/ProgramList'
+import { SECTION_OPTIONS } from '../constants/sections'
+import OrchestraSettings from '../components/OrchestraSettings'
+import DashboardTabs from '../components/DashboardTabs'
 
 function OrchestraDashboard() {
     const { id } = useParams()
@@ -22,6 +28,7 @@ function OrchestraDashboard() {
     const [programError, setProgramError] = useState(null)
 
     const [currentOrchestra, setCurrentOrchestra] = useState(null)
+    const [orchestraForm, setOrchestraForm] = useState(null)
     const [programs, setPrograms] = useState([])
     const [hasAccess, setHasAccess] = useState(null)
     const [loading, setLoading] = useState(true)
@@ -54,10 +61,18 @@ function OrchestraDashboard() {
                     return
                 }
 
-                const orchestraRes = await client.get(`/orchestras/${orchestraId}`)
-                setCurrentOrchestra(orchestraRes.data.data ?? orchestraRes.data)
+                const [orchestraRes, programsData] = await Promise.all([
+                    client.get(`/orchestras/${orchestraId}`),
+                    getPrograms(orchestraId)
+                ])
 
-                const programsData = await getPrograms(orchestraId)
+                const orchestra = orchestraRes.data.data ?? orchestraRes.data
+
+                setCurrentOrchestra(orchestra)
+                setOrchestraForm({
+                    name: orchestra.name,
+                    location: orchestra.location
+                })
                 setPrograms(programsData)
             } catch (error) {
                 console.error('OrchestraDashboard load error:', error)
@@ -71,7 +86,7 @@ function OrchestraDashboard() {
 
     const handleChange = (e) => {
         const { name, value } = e.target
-        setCurrentOrchestra((prev) => ({ ...prev, [name]: value }))
+        setOrchestraForm((prev) => ({ ...prev, [name]: value }))
     }
 
     const handleSave = async () => {
@@ -79,11 +94,13 @@ function OrchestraDashboard() {
         setSaveStatus(null)
 
         try {
-            const updated = await updateOrchestra(orchestraId, {
-                name: currentOrchestra.name,
-                location: currentOrchestra.location
-            })
+            const updated = await updateOrchestra(orchestraId, orchestraForm)
+
             setCurrentOrchestra(updated)
+            setOrchestraForm({
+                name: updated.name,
+                location: updated.location
+            })
             setSaveStatus('success')
         } catch (error) {
             console.error('Save orchestra error:', error)
@@ -111,9 +128,9 @@ function OrchestraDashboard() {
         }
     }
 
-    if (loading) return <p>Loading...</p>
-    if (hasAccess === false) return <h1>Access denied</h1>
-    if (!currentOrchestra) return <h1>Orchestra not found</h1>
+    if (loading) return <p className="p-8 text-sm">Loading...</p>
+    if (hasAccess === false) return <h1 className="p-8 text-2xl font-semibold">Access denied</h1>
+    if (!currentOrchestra) return <h1 className="p-8 text-2xl font-semibold">Orchestra not found</h1>
 
     const now = new Date()
     const activePrograms = programs
@@ -155,13 +172,6 @@ function OrchestraDashboard() {
         }
     }
 
-    const SECTION_OPTIONS = [
-        'violin_1', 'violin_2', 'viola', 'cello', 'double_bass',
-        'french_horn', 'trumpet', 'trombone', 'tuba', 'flute',
-        'oboe', 'clarinet', 'bassoon', 'percussion', 'mallet',
-        'vocal', 'other'
-    ]
-
     const openAddMemberModal = () => {
         setMemberForm({ email: '', role: 'member', member_type: 'core', instrument: '', section: 'violin_1' })
         setMemberError(null)
@@ -192,284 +202,117 @@ function OrchestraDashboard() {
         }
     }
 
+    const tabClass = (tab) =>
+        `rounded-lg text-sm font-medium px-4 py-2 cursor-pointer focus:outline-none disabled:cursor-default ${activeTab === tab ? 'bg-black text-white' : 'text-black hover:bg-card-gray transition-colors'
+        }`
+
+    const tabs = [
+        { id: 'programs', label: 'Programs' },
+        { id: 'past-programs', label: 'Past Programs' },
+        { id: 'members', label: 'Members' },
+        { id: 'settings', label: 'Settings' },
+    ]
+
     return (
-        <div>
-            <h1>{currentOrchestra.name}</h1>
-            <p>{currentOrchestra.location}</p>
+        <div className="bg-white min-h-screen p-8">
+            <div className="max-w-5xl mx-auto">
+                <h1 className="text-2xl font-semibold">{currentOrchestra.name}</h1>
+                <p className="text-sm opacity-75 mb-6">{currentOrchestra.location}</p>
 
-            <nav style={{ display: 'flex', gap: '1rem', margin: '2rem 0' }}>
-                <button type="button" onClick={() => setActiveTab('programs')}
-                    style={{ fontWeight: activeTab === 'programs' ? 'bold' : 'normal' }}>
-                    Programs
-                </button>
-                <button type="button" onClick={() => setActiveTab('past-programs')}
-                    style={{ fontWeight: activeTab === 'past-programs' ? 'bold' : 'normal' }}>
-                    Past Programs
-                </button>
-                <button type="button" onClick={() => setActiveTab('members')}
-                    style={{ fontWeight: activeTab === 'members' ? 'bold' : 'normal' }}>
-                    Members
-                </button>
-                <button type="button" onClick={() => setActiveTab('settings')}
-                    style={{ fontWeight: activeTab === 'settings' ? 'bold' : 'normal' }}>
-                    Settings
-                </button>
-            </nav>
+                <DashboardTabs
+                    tabs={tabs}
+                    activeTab={activeTab}
+                    onChange={setActiveTab}
+                />
 
-            {activeTab === 'programs' && (
-                <div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <h2>Programs</h2>
-                        <button type="button" onClick={openCreateProgramModal}>
-                            + Add program
-                        </button>
-                    </div>
+                {activeTab === 'programs' && (
+                    <ProgramList
+                        title="Programs"
+                        programs={activePrograms}
+                        selectedProgramId={selectedProgramId}
+                        setSelectedProgramId={setSelectedProgramId}
+                        canManage
+                        onProgramUpdated={handleProgramUpdated}
+                        onProgramDeleted={handleProgramDeleted}
+                        action={
+                            <button
+                                type="button"
+                                onClick={openCreateProgramModal}
+                                className="rounded-lg border border-black bg-black text-white text-sm font-medium px-3 py-1.5 cursor-pointer focus:outline-none flex items-center gap-1"
+                            >
+                                <span className="material-symbols-outlined text-xl!">
+                                    add
+                                </span>
 
-                    {activePrograms.length === 0 && <p>No active programs.</p>}
-                    {activePrograms.map((program) => (
-                        <ProgramCard
-                            key={program.id}
-                            program={program}
-                            isOpen={selectedProgramId === program.id}
-                            onToggle={() =>
-                                setSelectedProgramId(selectedProgramId === program.id ? null : program.id)
-                            }
-                            canManage={true}
-                            onProgramUpdated={handleProgramUpdated}
-                            onProgramDeleted={handleProgramDeleted}
-                        />
-                    ))}
-                </div>
-            )}
-
-            {activeTab === 'past-programs' && (
-                <div>
-                    <h2>Past Programs</h2>
-                    {pastPrograms.length === 0 && <p>No past programs.</p>}
-                    {pastPrograms.map((program) => (
-                        <ProgramCard
-                            key={program.id}
-                            program={program}
-                            isOpen={selectedProgramId === program.id}
-                            onToggle={() =>
-                                setSelectedProgramId(selectedProgramId === program.id ? null : program.id)
-                            }
-                            canManage={true}
-                            onProgramUpdated={handleProgramUpdated}
-                            onProgramDeleted={handleProgramDeleted}
-                        />
-                    ))}
-                </div>
-            )}
-
-            {activeTab === 'members' && (
-                <div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <h2>Members</h2>
-                        <button type="button" onClick={openAddMemberModal}>
-                            + Add members
-                        </button>
-                    </div>
-
-                    <MemberList orchestraId={currentOrchestra.id} refreshKey={membersRefreshKey} />
-                </div>
-            )}
-
-            {activeTab === 'settings' && (
-                <div>
-                    <h2>Settings</h2>
-
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', maxWidth: '300px' }}>
-                        <label>
-                            Name
-                            <input
-                                name="name"
-                                value={currentOrchestra.name}
-                                onChange={handleChange}
-                                disabled={isSaving}
-                                style={{ opacity: isSaving ? 0.6 : 1 }}
-                            />
-                        </label>
-
-                        <label>
-                            Location
-                            <input
-                                name="location"
-                                value={currentOrchestra.location}
-                                onChange={handleChange}
-                                disabled={isSaving}
-                                style={{ opacity: isSaving ? 0.6 : 1 }}
-                            />
-                        </label>
-
-                        <button
-                            type="button"
-                            onClick={handleSave}
-                            disabled={isSaving}
-                            style={{ opacity: isSaving ? 0.6 : 1, cursor: isSaving ? 'not-allowed' : 'pointer' }}
-                        >
-                            {isSaving ? 'Saving...' : 'Save'}
-                        </button>
-
-                        {saveStatus === 'success' && (
-                            <p style={{ color: 'green', marginTop: '8px' }}>Changes saved successfully</p>
-                        )}
-                        {saveStatus === 'error' && (
-                            <p style={{ color: 'red', marginTop: '8px' }}>Error saving changes</p>
-                        )}
-
-                        <hr style={{ margin: '2rem 0' }} />
-
-                        <button
-                            type="button"
-                            onClick={handleDeleteOrchestra}
-                            disabled={isDeleting}
-                            style={{ color: 'red' }}
-                        >
-                            {isDeleting ? 'Deleting...' : 'Delete orchestra'}
-                        </button>
-                    </div>
-                </div>
-            )}
-
-            {showCreateProgramModal && (
-                <div style={{
-                    position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-                    background: 'rgba(0,0,0,0.4)', display: 'flex',
-                    alignItems: 'center', justifyContent: 'center', zIndex: 100
-                }}>
-                    <div style={{
-                        background: 'white', padding: '1rem', width: '320px',
-                        display: 'flex', flexDirection: 'column', gap: '0.5rem'
-                    }}>
-                        <h3>Add program</h3>
-
-                        <label>
-                            Name
-                            <input
-                                value={programForm.name}
-                                onChange={(e) => setProgramForm({ ...programForm, name: e.target.value })}
-                                disabled={isSavingProgram}
-                            />
-                        </label>
-
-                        <label>
-                            Start date
-                            <input
-                                type="date"
-                                value={programForm.start_date}
-                                onChange={(e) => setProgramForm({ ...programForm, start_date: e.target.value })}
-                                disabled={isSavingProgram}
-                            />
-                        </label>
-
-                        <label>
-                            End date
-                            <input
-                                type="date"
-                                value={programForm.end_date}
-                                onChange={(e) => setProgramForm({ ...programForm, end_date: e.target.value })}
-                                disabled={isSavingProgram}
-                            />
-                        </label>
-
-                        {programError && <p style={{ color: 'red' }}>{programError}</p>}
-
-                        <div style={{ display: 'flex', gap: '0.5rem' }}>
-                            <button onClick={handleCreateProgram} disabled={isSavingProgram}>
-                                {isSavingProgram ? 'Saving...' : 'Create'}
+                                Add program
                             </button>
-                            <button onClick={() => setShowCreateProgramModal(false)} disabled={isSavingProgram}>
-                                Cancel
+                        }
+                    />
+                )}
+
+                {activeTab === 'past-programs' && (
+                    <ProgramList
+                        title="Past Programs"
+                        programs={pastPrograms}
+                        selectedProgramId={selectedProgramId}
+                        setSelectedProgramId={setSelectedProgramId}
+                        canManage
+                        onProgramUpdated={handleProgramUpdated}
+                        onProgramDeleted={handleProgramDeleted}
+                    />
+                )}
+
+                {activeTab === 'members' && (
+                    <div>
+                        <div className="flex justify-between items-center mb-4">
+                            <h2 className="text-2xl font-semibold">Members</h2>
+                            <button
+                                type="button"
+                                onClick={openAddMemberModal}
+                                className="rounded-lg border border-black bg-black text-white text-sm font-medium px-3 py-1.5 cursor-pointer focus:outline-none flex items-center gap-1"
+                            >
+                                <span className="material-symbols-outlined text-xl!">add</span>
+                                Add members
                             </button>
                         </div>
+
+                        <MemberList orchestraId={currentOrchestra.id} refreshKey={membersRefreshKey} />
                     </div>
-                </div>
-            )}
+                )}
 
-            {showAddMemberModal && (
-                <div style={{
-                    position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-                    background: 'rgba(0,0,0,0.4)', display: 'flex',
-                    alignItems: 'center', justifyContent: 'center', zIndex: 100
-                }}>
-                    <div style={{
-                        background: 'white', padding: '1rem', width: '320px',
-                        display: 'flex', flexDirection: 'column', gap: '0.5rem'
-                    }}>
-                        <h3>Add member</h3>
+                {activeTab === 'settings' && (
+                    <OrchestraSettings
+                        orchestra={orchestraForm}
+                        isSaving={isSaving}
+                        isDeleting={isDeleting}
+                        saveStatus={saveStatus}
+                        onChange={handleChange}
+                        onSave={handleSave}
+                        onDelete={handleDeleteOrchestra}
+                    />
+                )}
+            </div>
 
-                        <label>
-                            Email
-                            <input
-                                type="email"
-                                value={memberForm.email}
-                                onChange={(e) => setMemberForm({ ...memberForm, email: e.target.value })}
-                                disabled={isSavingMember}
-                            />
-                        </label>
+            <CreateProgramModal
+                open={showCreateProgramModal}
+                form={programForm}
+                setForm={setProgramForm}
+                loading={isSavingProgram}
+                error={programError}
+                onCreate={handleCreateProgram}
+                onClose={() => setShowCreateProgramModal(false)}
+            />
 
-                        <label>
-                            Role
-                            <select
-                                value={memberForm.role}
-                                onChange={(e) => setMemberForm({ ...memberForm, role: e.target.value })}
-                                disabled={isSavingMember}
-                            >
-                                <option value="admin">admin</option>
-                                <option value="member">member</option>
-                            </select>
-                        </label>
-
-                        <label>
-                            Member type
-                            <select
-                                value={memberForm.member_type}
-                                onChange={(e) => setMemberForm({ ...memberForm, member_type: e.target.value })}
-                                disabled={isSavingMember}
-                            >
-                                <option value="core">core</option>
-                                <option value="substitute">substitute</option>
-                                <option value="guest">guest</option>
-                            </select>
-                        </label>
-
-                        <label>
-                            Instrument
-                            <input
-                                value={memberForm.instrument}
-                                onChange={(e) => setMemberForm({ ...memberForm, instrument: e.target.value })}
-                                disabled={isSavingMember}
-                            />
-                        </label>
-
-                        <label>
-                            Section
-                            <select
-                                value={memberForm.section}
-                                onChange={(e) => setMemberForm({ ...memberForm, section: e.target.value })}
-                                disabled={isSavingMember}
-                            >
-                                {SECTION_OPTIONS.map((s) => (
-                                    <option key={s} value={s}>{s}</option>
-                                ))}
-                            </select>
-                        </label>
-
-                        {memberError && <p style={{ color: 'red' }}>{memberError}</p>}
-
-                        <div style={{ display: 'flex', gap: '0.5rem' }}>
-                            <button onClick={handleAddMember} disabled={isSavingMember}>
-                                {isSavingMember ? 'Saving...' : 'Create'}
-                            </button>
-                            <button onClick={() => setShowAddMemberModal(false)} disabled={isSavingMember}>
-                                Cancel
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
-
+            <AddMemberModal
+                open={showAddMemberModal}
+                form={memberForm}
+                setForm={setMemberForm}
+                loading={isSavingMember}
+                error={memberError}
+                sectionOptions={SECTION_OPTIONS}
+                onCreate={handleAddMember}
+                onClose={() => setShowAddMemberModal(false)}
+            />
         </div>
     )
 }

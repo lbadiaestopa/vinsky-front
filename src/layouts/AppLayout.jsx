@@ -14,11 +14,12 @@ function AppLayout() {
   }
 
   return (
-    <div style={{ display: 'flex' }}>
+    <div className="flex">
       <Sidebar />
 
-      <div style={{ flex: 1 }}></div>
-      <Outlet />
+      <main className="flex-1">
+        <Outlet />
+      </main>
     </div>
   )
 }

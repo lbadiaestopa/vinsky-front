@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect } from 'react'
+import client from '../api/client'
 
 const AuthContext = createContext()
 
@@ -19,12 +20,23 @@ export function AuthProvider({ children }) {
         setLoading(false)
     }, [])
 
-    const login = (data) => {
+    const persistSession = (data) => {
         setUser(data.user)
         setToken(data.token)
 
         localStorage.setItem('user', JSON.stringify(data.user))
         localStorage.setItem('token', data.token)
+    }
+
+    const login = async (email, password) => {
+        const response = await client.post('/login', {
+            email,
+            password,
+        })
+
+        persistSession(response.data)
+
+        return response.data
     }
 
     const logout = () => {
@@ -49,6 +61,7 @@ export function AuthProvider({ children }) {
         login,
         logout,
         updateUser,
+        persistSession,
         loading,
     }
 
