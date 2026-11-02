@@ -1,6 +1,7 @@
 import { Routes, Route } from 'react-router-dom'
 import PublicLayout from './layouts/PublicLayout'
 import AppLayout from './layouts/AppLayout'
+import Landing from './pages/Landing'
 import Home from './pages/Home'
 import OrchestraDashboard from './pages/OrchestraDashboard'
 import Profile from './pages/Profile'
@@ -10,6 +11,9 @@ import Register from './pages/Register'
 function App() {
   return (
     <Routes>
+
+      {/* Landing page */}
+      <Route path="/" element={<Landing />} />
 
       {/* Public routes */}
       <Route element={<PublicLayout />}>
