@@ -32,7 +32,7 @@ function Register() {
 
             persistSession(response.data)
 
-            navigate('/')
+            navigate('/app')
         } catch (err) {
             console.error('REGISTER ERROR:', err.response?.data || err.message)
             setError(err.response?.data?.message ?? 'Failed to register')

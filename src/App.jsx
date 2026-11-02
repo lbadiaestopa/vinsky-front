@@ -23,7 +23,7 @@ function App() {
 
       {/* Private app routes */}
       <Route element={<AppLayout />}>
-        <Route path="/" element={<Home />} />
+        <Route path="/home" element={<Home />} />
         <Route path="/orchestras/:id" element={<OrchestraDashboard />} />
         <Route path="/profile" element={<Profile />} />
       </Route>
