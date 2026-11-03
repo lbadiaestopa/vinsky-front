@@ -1,5 +1,6 @@
 import LandingHeader from '../components/LandingHeader'
 import AboutSection from '../components/AboutSection'
+import FeaturesSection from '../components/FeaturesSection'
 
 function Landing() {
     return (
@@ -7,6 +8,7 @@ function Landing() {
             <LandingHeader />
             <main className="pt-4">
                 <AboutSection />
+                <FeaturesSection />
             </main>
         </>
     )
