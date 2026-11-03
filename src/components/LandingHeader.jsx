@@ -4,31 +4,40 @@ function LandingHeader() {
     const [activeSection, setActiveSection] = useState('')
 
     useEffect(() => {
-        const observer = new IntersectionObserver(
-            (entries) => {
-                entries.forEach((entry) => {
-                    if (entry.isIntersecting) {
-                        setActiveSection(entry.target.id)
-                    }
-                })
-            },
-            {
-                rootMargin: '-20% 0px -60% 0px'
+        const updateActiveSection = () => {
+            const sections = document.querySelectorAll('#about, #features, #contact')
+
+            const isAtBottom =
+                window.innerHeight + window.scrollY >=
+                document.documentElement.scrollHeight - 2
+
+            if (isAtBottom) {
+                setActiveSection('contact')
+                return
             }
-        )
 
-        const sections = document.querySelectorAll('#about, #features, #contact')
+            const currentSection = [...sections]
+                .reverse()
+                .find((section) => section.getBoundingClientRect().top <= window.innerHeight * 0.35)
 
-        sections.forEach((section) => observer.observe(section))
+            setActiveSection(currentSection?.id || 'about')
+        }
 
-        return () => observer.disconnect()
+        window.addEventListener('scroll', updateActiveSection)
+        window.addEventListener('resize', updateActiveSection)
+
+        updateActiveSection()
+
+        return () => {
+            window.removeEventListener('scroll', updateActiveSection)
+            window.removeEventListener('resize', updateActiveSection)
+        }
     }, [])
 
     const navClass = (section) =>
-        `text-black transition-all ${
-            activeSection === section
-                ? 'underline underline-offset-8 decoration-2'
-                : 'hover:underline hover:underline-offset-8'
+        `text-black transition-all ${activeSection === section
+            ? 'underline underline-offset-8 decoration-2'
+            : 'hover:underline hover:underline-offset-8'
         }`
 
     return (
