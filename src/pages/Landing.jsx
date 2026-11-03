@@ -2,6 +2,7 @@ import LandingHeader from '../components/LandingHeader'
 import AboutSection from '../components/AboutSection'
 import FeaturesSection from '../components/FeaturesSection'
 import ContactSection from '../components/ContactSection'
+import LandingFooter from '../components/LandingFooter'
 
 function Landing() {
     return (
@@ -12,6 +13,7 @@ function Landing() {
                 <FeaturesSection />
                 <ContactSection />
             </main>
+            <LandingFooter />
         </>
     )
 }
