@@ -2,10 +2,10 @@ import aboutImage from '../assets/about-image.png'
 
 function AboutSection() {
     return (
-        <section id="about" className="bg-white px-8 py-24 text-black">
+        <section id="about" className="bg-white px-8 pt-24 text-black">
             <div className="max-w-7xl mx-auto">
                 <h1 className="text-7xl font-semibold leading-tight">
-                    Your Orchestra, Always in Sync.
+                    Your Orchestra, Always in Sync
                 </h1>
 
                 <p className="ml-2 max-w-7xl text-base leading-relaxed">
