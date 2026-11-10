@@ -93,7 +93,7 @@ function Sidebar() {
                     <ul className="list-none p-0">
                         <li>
                             <Link
-                                to="/"
+                                to="/home"
                                 className="block text-sm w-full text-left rounded-lg py-2 px-4 hover:bg-card-gray transition-all"
                             >
                                 Home
