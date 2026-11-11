@@ -1,4 +1,4 @@
-import { Link, useNavigate } from 'react-router-dom'
+import { NavLink, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useEffect, useState } from 'react'
 import { getMe } from '../services/userService'
@@ -88,16 +88,19 @@ function Sidebar() {
     return (
         <>
             <aside className="w-80 min-h-screen bg-white border-r border-gray pb-4 pt-2 pl-4 pr-4 flex flex-col sticky top-0 h-screen">
-
                 <nav>
                     <ul className="list-none p-0">
                         <li>
-                            <Link
+                            <NavLink
                                 to="/home"
-                                className="block text-sm w-full text-left rounded-lg py-2 px-4 hover:bg-card-gray transition-all"
+                                end
+                                className={({ isActive }) =>
+                                    `block text-sm w-full text-left rounded-lg py-2 px-4 hover:bg-card-gray transition-all ${isActive ? 'bg-card-gray' : ''
+                                    }`
+                                }
                             >
                                 Home
-                            </Link>
+                            </NavLink>
                         </li>
                     </ul>
                 </nav>
@@ -115,12 +118,15 @@ function Sidebar() {
                             <ul className="flex-1 min-h-0 overflow-y-auto list-none p-0 flex flex-col gap-1">
                                 {adminOrchestras.map((orch) => (
                                     <li key={orch.id}>
-                                        <Link
+                                        <NavLink
                                             to={`/orchestras/${orch.id}`}
-                                            className="block text-sm rounded-lg px-4 py-2 hover:bg-card-gray transition-all"
+                                            className={({ isActive }) =>
+                                                `block text-sm rounded-lg px-4 py-2 hover:bg-card-gray transition-all ${isActive ? 'bg-card-gray' : ''
+                                                }`
+                                            }
                                         >
                                             {orch.name}
-                                        </Link>
+                                        </NavLink>
                                     </li>
                                 ))}
                             </ul>
@@ -144,9 +150,12 @@ function Sidebar() {
                 <hr className="border-gray my-2 -mr-4 -ml-8" />
 
                 {user && (
-                    <Link
+                    <NavLink
                         to="/profile"
-                        className="block no-underline rounded-lg py-2 px-4 text-black hover:bg-card-gray transition-all"
+                        className={({ isActive }) =>
+                            `block no-underline rounded-lg py-2 px-4 text-black hover:bg-card-gray transition-all ${isActive ? 'bg-card-gray' : ''
+                            }`
+                        }
                     >
                         <strong className="text-sm font-semibold">
                             {user.name} {user.last_name}
@@ -154,7 +163,7 @@ function Sidebar() {
                         <div className="text-sm opacity-75">
                             {user.email}
                         </div>
-                    </Link>
+                    </NavLink>
                 )}
 
                 {token && (
