@@ -105,11 +105,12 @@ function Sidebar() {
                 <hr className="border-gray mb-4 mt-2 -mr-4 -ml-8" />
 
                 <div className="flex-1 min-h-0 flex flex-col">
+                    <h4 className="text-sm font-semibold mb-2 px-4">
+                        My Orchestras
+                    </h4>
+
                     {hasAdminOrchestras && (
                         <>
-                            <h4 className="text-sm font-semibold mb-2 px-4">
-                                My Orchestras
-                            </h4>
 
                             <ul className="flex-1 min-h-0 overflow-y-auto list-none p-0 flex flex-col gap-1">
                                 {adminOrchestras.map((orch) => (
@@ -128,7 +129,7 @@ function Sidebar() {
                 </div>
 
                 <hr className="border-gray my-2 -mr-4 -ml-8" />
-                
+
                 <button
                     type="button"
                     onClick={openCreateModal}
