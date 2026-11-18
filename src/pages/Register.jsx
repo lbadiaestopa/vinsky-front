@@ -9,6 +9,7 @@ function Register() {
     const [lastName, setLastName] = useState('')
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
+    const [passwordConfirmation, setPasswordConfirmation] = useState('')
     const [error, setError] = useState(null)
     const [loading, setLoading] = useState(false)
     const { persistSession } = useAuth()
@@ -28,11 +29,12 @@ function Register() {
                 last_name: lastName,
                 email,
                 password,
+                password_confirmation: passwordConfirmation,
             })
 
             persistSession(response.data)
 
-            navigate('/app')
+            navigate('/home')
         } catch (err) {
             console.error('REGISTER ERROR:', err.response?.data || err.message)
             setError(err.response?.data?.message ?? 'Failed to register')
@@ -77,6 +79,14 @@ function Register() {
                         value={password}
                         disabled={loading}
                         onChange={(e) => setPassword(e.target.value)}
+                    />
+
+                    <FormInput
+                        label="Confirm password"
+                        type="password"
+                        value={passwordConfirmation}
+                        disabled={loading}
+                        onChange={(e) => setPasswordConfirmation(e.target.value)}
                     />
 
                     {error && (
