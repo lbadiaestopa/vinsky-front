@@ -22,10 +22,12 @@ function Login() {
             await login(email, password)
 
             navigate('/')
-        } catch {
-            setError('Incorrect email or password')
-        } finally {
-            setIsSubmitting(false)
+        } catch (err) {
+            if (err.response?.status === 403) {
+                setError('Please verify your email address before logging in.')
+            } else {
+                setError('Incorrect email or password')
+            }
         }
     }
 
