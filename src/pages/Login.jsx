@@ -2,12 +2,15 @@ import { useState, useEffect } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import FormInput from '../components/FormInput'
+import client from '../api/client'
 
 function Login() {
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
     const [error, setError] = useState(null)
     const [isSubmitting, setIsSubmitting] = useState(false)
+    const [emailNotVerified, setEmailNotVerified] = useState(false)
+    const [resending, setResending] = useState(false)
 
     const { token, login } = useAuth()
     const navigate = useNavigate()
@@ -15,15 +18,19 @@ function Login() {
     const handleSubmit = async (e) => {
         e.preventDefault()
         setError(null)
+        setEmailNotVerified(false)
+        setIsSubmitting(true)
 
         try {
-            setIsSubmitting(true)
-
             await login(email, password)
-
-            navigate('/')
-        } catch {
-            setError('Incorrect email or password')
+            navigate('/home')
+        } catch (err) {
+            if (err.response?.status === 403) {
+                setError('Please verify your email address before logging in.')
+                setEmailNotVerified(true)
+            } else {
+                setError('Incorrect email or password')
+            }
         } finally {
             setIsSubmitting(false)
         }
@@ -34,6 +41,23 @@ function Login() {
             navigate('/home')
         }
     }, [token])
+
+    const handleResendVerification = async () => {
+        try {
+            setResending(true)
+
+            await client.post('/email/verification-notification', {
+                email,
+            })
+
+            setError('If your email address is registered and not verified, a verification link has been sent.')
+            setEmailNotVerified(false)
+        } catch {
+            setError('Unable to resend verification email. Please try again later.')
+        } finally {
+            setResending(false)
+        }
+    }
 
     return (
         <div className="min-h-screen bg-white flex items-center justify-center px-4">
@@ -69,6 +93,17 @@ function Login() {
                         <p className="text-sm text-red-600 ms-1">
                             {error}
                         </p>
+                    )}
+
+                    {emailNotVerified && (
+                        <button
+                            type="button"
+                            onClick={handleResendVerification}
+                            disabled={resending}
+                            className="text-sm font-medium underline text-left ms-1 hover:cursor-pointer hover:text-gray disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                            {resending ? 'Sending...' : 'Resend verification email'}
+                        </button>
                     )}
 
                     <button

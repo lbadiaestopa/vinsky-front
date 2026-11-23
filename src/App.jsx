@@ -7,6 +7,7 @@ import OrchestraDashboard from './pages/OrchestraDashboard'
 import Profile from './pages/Profile'
 import Login from './pages/Login'
 import Register from './pages/Register'
+import EmailVerified from './pages/EmailVerified'
 
 function App() {
   return (
@@ -19,6 +20,7 @@ function App() {
       <Route element={<PublicLayout />}>
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/email/verified" element={<EmailVerified />} />
       </Route>
 
       {/* Private app routes */}

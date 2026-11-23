@@ -1,6 +1,5 @@
-import { useState, useEffect } from 'react'
-import { useNavigate, Link } from 'react-router-dom'
-import { useAuth } from '../context/AuthContext'
+import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import client from '../api/client'
 import FormInput from '../components/FormInput'
 
@@ -12,10 +11,7 @@ function Register() {
     const [passwordConfirmation, setPasswordConfirmation] = useState('')
     const [error, setError] = useState(null)
     const [loading, setLoading] = useState(false)
-    const { persistSession } = useAuth()
-
-    const { token, login } = useAuth()
-    const navigate = useNavigate()
+    const [registered, setRegistered] = useState(false)
 
     const handleSubmit = async (e) => {
         e.preventDefault()
@@ -24,7 +20,7 @@ function Register() {
         setLoading(true)
 
         try {
-            const response = await client.post('/register', {
+            await client.post('/register', {
                 name,
                 last_name: lastName,
                 email,
@@ -32,15 +28,37 @@ function Register() {
                 password_confirmation: passwordConfirmation,
             })
 
-            persistSession(response.data)
-
-            navigate('/home')
+            setRegistered(true)
         } catch (err) {
             console.error('REGISTER ERROR:', err.response?.data || err.message)
             setError(err.response?.data?.message ?? 'Failed to register')
         } finally {
             setLoading(false)
         }
+    }
+
+    if (registered) {
+        return (
+            <div className="min-h-screen bg-white flex items-center justify-center px-4">
+                <div className="w-full max-w-sm">
+                    <h1 className="text-2xl font-semibold mb-6 ms-1">
+                        Check your email!
+                    </h1>
+
+                    <p className="text-sm text-gray-600 mb-6 ms-1">
+                        We've sent a verification link to <strong>{email}</strong>.
+                        Please verify your email address before logging in.
+                    </p>
+
+                    <Link
+                        to="/login"
+                        className="block text-center rounded-lg bg-black text-white text-sm font-medium py-2 border border-black hover:cursor-pointer"
+                    >
+                        Go to Login
+                    </Link>
+                </div>
+            </div>
+        )
     }
 
     return (
