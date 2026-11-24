@@ -13,6 +13,8 @@ React client consuming [Vinsky API](https://github.com/lbadiaestopa/vinsky-api) 
 
 ## 🪄 Features
 - Secure user authentication
+- Email verification for newly registered accounts
+- Verification email resend functionality
 - User profile management
 - Orchestra administration dashboard
 - Orchestra member management
@@ -124,6 +126,8 @@ To test the app, use the demo accounts created by the API seeders or create a ne
 | Admin | beethoven@admin.com | password |
 | Member | mozart@member.com | password |
 | Member | bach@member.com | password |
+
+> **Note:** Demo accounts are already verified. Newly registered users must verify their email address before logging in.
 
 ##
 
