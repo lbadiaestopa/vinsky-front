@@ -1,3 +1,5 @@
+import { Link } from 'react-router-dom'
+
 function LandingFooter() {
     const currentYear = new Date().getFullYear()
 
@@ -26,7 +28,9 @@ function LandingFooter() {
 
                 <span>© Vinsky {currentYear}</span>
 
-                <span>Barcelona</span>
+                <Link to="/privacy" className="hover:underline">
+                    Privacy Policy
+                </Link>
             </div>
         </footer>
     )

@@ -8,6 +8,7 @@ import Profile from './pages/Profile'
 import Login from './pages/Login'
 import Register from './pages/Register'
 import EmailVerified from './pages/EmailVerified'
+import PrivacyPolicy from './pages/PrivacyPolicy'
 
 function App() {
   return (
@@ -15,6 +16,7 @@ function App() {
 
       {/* Landing page */}
       <Route path="/" element={<Landing />} />
+      <Route path="/privacy" element={<PrivacyPolicy />} />
 
       {/* Public routes */}
       <Route element={<PublicLayout />}>
